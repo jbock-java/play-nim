@@ -33,7 +33,7 @@ public final class Nim {
         return false;
     }
 
-    private int nimSum() {
+    int nimSum() {
         int[] sum = new int[0];
         for (int s : state) {
             sum = nimSum(sum, bin(s));
@@ -79,5 +79,9 @@ public final class Nim {
     @Override
     public String toString() {
         return Arrays.toString(state) + " | " + nimSum();
+    }
+
+    int[] state() {
+        return state;
     }
 }

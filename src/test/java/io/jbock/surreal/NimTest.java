@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class NimTest {
 
@@ -30,6 +31,15 @@ class NimTest {
         System.out.println(nim);
         nim.move();
         System.out.println(nim);
+    }
+
+    @Test
+    void testPlay4() {
+        Nim nim = Nim.create(1, 4, 6);
+        assertEquals(3, nim.nimSum());
+        nim.move();
+        assertArrayEquals(new int[]{1, 4, 5}, nim.state());
+        assertEquals(0, nim.nimSum());
     }
 
     @Test
