@@ -1,7 +1,9 @@
 package io.jbock.surreal;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public final class Nim {
 
@@ -18,19 +20,25 @@ public final class Nim {
         return new Nim(state);
     }
 
-    boolean move() {
+    List<Nim> moves() {
         int x = nimSum();
         if (x == 0) {
-            return false;
+            return List.of();
         }
+        List<Nim> result = new ArrayList<>();
         for (int i = 0; i < state.length; i++) {
             int n = translate(nimSum(bin(state[i]), x));
             if (n < state[i]) {
-                state[i] = n;
-                return true;
+                result.add(set(i, n));
             }
         }
-        return false;
+        return result;
+    }
+
+    Nim set(int i, int n) {
+        int[] newState = Arrays.copyOf(state, state.length);
+        newState[i] = n;
+        return new Nim(newState);
     }
 
     int nimSum() {
@@ -83,5 +91,18 @@ public final class Nim {
 
     int[] state() {
         return state;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Nim nim = (Nim) o;
+        return Arrays.equals(state, nim.state);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(state);
     }
 }

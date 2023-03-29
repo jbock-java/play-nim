@@ -3,9 +3,11 @@ package io.jbock.surreal;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NimTest {
 
@@ -13,7 +15,7 @@ class NimTest {
     void testPlay() {
         Nim nim = Nim.create(1, 20, 17);
         System.out.println(nim);
-        nim.move();
+        nim.moves();
         System.out.println(nim);
     }
 
@@ -21,7 +23,7 @@ class NimTest {
     void testPlay2() {
         Nim nim = Nim.create(3, 4, 5);
         System.out.println(nim);
-        nim.move();
+        nim.moves();
         System.out.println(nim);
     }
 
@@ -29,7 +31,7 @@ class NimTest {
     void testPlay3() {
         Nim nim = Nim.create(12, 7, 8);
         System.out.println(nim);
-        nim.move();
+        nim.moves();
         System.out.println(nim);
     }
 
@@ -37,9 +39,18 @@ class NimTest {
     void testPlay4() {
         Nim nim = Nim.create(1, 4, 6);
         assertEquals(3, nim.nimSum());
-        nim.move();
+        nim.moves();
         assertArrayEquals(new int[]{1, 4, 5}, nim.state());
         assertEquals(0, nim.nimSum());
+    }
+
+    @Test
+    void testPlay5() {
+        Nim nim = Nim.create(13, 15, 7);
+        List<Nim> moves = nim.moves();
+        assertTrue(moves.contains(Nim.create(8, 15, 7)));
+        assertTrue(moves.contains(Nim.create(13, 15, 2)));
+        assertTrue(moves.contains(Nim.create(13, 10, 7)));
     }
 
     @Test
