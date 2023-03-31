@@ -7,9 +7,6 @@ import java.util.List;
 
 public final class Nim {
 
-    private static final byte ZERO = 0;
-    private static final byte ONE = 1;
-
     private final int[] state;
 
     private Nim(int[] state) {
@@ -21,15 +18,12 @@ public final class Nim {
     }
 
     List<Nim> moves() {
-        int x = nimSum();
-        if (x == 0) {
-            return List.of();
-        }
         List<Nim> result = new ArrayList<>();
-        for (int i = 0; i < state.length; i++) {
-            int n = translate(nimSum(bin(state[i]), x));
-            if (n < state[i]) {
-                result.add(set(i, n));
+        for (int j = 0; j < state.length; j++) {
+            int[] sum = sum(j);
+            int translated = translate(sum);
+            if (translated < state[j]) {
+                result.add(set(j, translated));
             }
         }
         return result;
@@ -56,7 +50,7 @@ public final class Nim {
     int[] bin(BigInteger n) {
         int[] result = new int[n.bitLength()];
         for (int i = 0; i < result.length; i++) {
-            result[i] = n.testBit(i) ? ONE : ZERO;
+            result[i] = n.testBit(i) ? 1 : 0;
         }
         return result;
     }
@@ -64,8 +58,8 @@ public final class Nim {
     int[] nimSum(int[] a, int[] b) {
         int[] result = new int[Math.max(a.length, b.length)];
         for (int i = 0; i < result.length; i++) {
-            int k = i >= a.length ? ZERO : a[i];
-            int l = i >= b.length ? ZERO : b[i];
+            int k = i >= a.length ? 0 : a[i];
+            int l = i >= b.length ? 0 : b[i];
             result[i] = (k + l) % 2;
         }
         return result;
@@ -89,8 +83,26 @@ public final class Nim {
         return Arrays.toString(state) + " | " + nimSum();
     }
 
-    int[] state() {
-        return state;
+    private int[] sum(int exclude) {
+        int[] result = new int[0];
+        for (int j = 0; j < state.length; j++) {
+            if (j == exclude) {
+                continue;
+            }
+            int i = state[j];
+            result = add(result, bin(i));
+        }
+        return result;
+    }
+
+    private int[] add(int[] a, int[] b) {
+        int[] result = new int[Math.max(a.length, b.length)];
+        for (int i = 0; i < result.length; i++) {
+            int ai = i >= a.length ? 0 : a[i];
+            int bi = i >= b.length ? 0 : b[i];
+            result[i] = (ai + bi) % 2;
+        }
+        return result;
     }
 
     @Override

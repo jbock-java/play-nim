@@ -39,18 +39,32 @@ class NimTest {
     void testPlay4() {
         Nim nim = Nim.create(1, 4, 6);
         assertEquals(3, nim.nimSum());
-        nim.moves();
-        assertArrayEquals(new int[]{1, 4, 5}, nim.state());
-        assertEquals(0, nim.nimSum());
+        List<Nim> moves = nim.moves();
+        assertTrue(moves.contains(Nim.create(1, 4, 5)));
     }
 
     @Test
     void testPlay5() {
         Nim nim = Nim.create(13, 15, 7);
         List<Nim> moves = nim.moves();
+        assertEquals(3, moves.size());
         assertTrue(moves.contains(Nim.create(8, 15, 7)));
         assertTrue(moves.contains(Nim.create(13, 15, 2)));
         assertTrue(moves.contains(Nim.create(13, 10, 7)));
+    }
+
+    @Test
+    void testPlay6() {
+        Nim nim = Nim.create(6, 3, 4);
+        List<Nim> moves = nim.moves();
+        System.out.println(moves);
+    }
+
+    @Test
+    void testPlay7() {
+        Nim nim = Nim.create(13, 7, 8);
+        List<Nim> moves = nim.moves();
+        System.out.println(moves);
     }
 
     @Test
