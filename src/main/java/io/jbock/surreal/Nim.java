@@ -95,4 +95,8 @@ public final class Nim {
     public int hashCode() {
         return Arrays.hashCode(state);
     }
+
+    int[] state() {
+        return state;
+    }
 }

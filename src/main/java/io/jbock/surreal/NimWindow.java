@@ -16,11 +16,16 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferStrategy;
 
 public class NimWindow extends JFrame {
+    
+    private Nim nim;
 
     private static final int WIDTH_CANVAS = 560;
     private static final int HEIGHT = 400;
@@ -31,6 +36,7 @@ public class NimWindow extends JFrame {
     private final Canvas canvas = new Canvas() {
         @Override
         public void paint(Graphics g) {
+            paintOnCanvas();
         }
     };
 
@@ -56,11 +62,12 @@ public class NimWindow extends JFrame {
                 e -> view.dispatchEvent(new WindowEvent(view, WindowEvent.WINDOW_CLOSING)),
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
-        view.canvas.createBufferStrategy(4);
+        view.canvas.createBufferStrategy(1);
         view.setLocationRelativeTo(null);
         return view;
     }
 
+    @Override
     public BufferStrategy getBufferStrategy() {
         return canvas.getBufferStrategy();
     }
@@ -94,5 +101,32 @@ public class NimWindow extends JFrame {
         buttonPanel.setBackground(Color.DARK_GRAY);
         actions.setBackground(Color.DARK_GRAY);
         sidePanel.setBackground(Color.DARK_GRAY);
+    }
+
+    void set(Nim nim) {
+        this.nim = nim;
+        canvas.repaint();
+    }
+
+    private void paintOnCanvas() {
+        if (nim == null) {
+            return;
+        }
+        BufferStrategy bufferStrategy = getBufferStrategy();
+        Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
+        int[] state = nim.state();
+        g.setPaint(Color.CYAN);
+        for (int k = 0; k < state.length; k++) {
+            int i = state[k];
+            for (int j = 0; j < i; j++) {
+                int x = 20 + 26 * j;
+                int y = 20 + 26 * k;
+                Ellipse2D.Float f = new Ellipse2D.Float(x, y, 20, 20);
+                g.fill(f);
+            }
+        }
+        bufferStrategy.show();
+        g.dispose();
+        Toolkit.getDefaultToolkit().sync();
     }
 }
