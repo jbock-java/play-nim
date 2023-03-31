@@ -57,6 +57,7 @@ public class NimWindow extends JFrame {
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
         view.canvas.createBufferStrategy(4);
+        view.setLocationRelativeTo(null);
         return view;
     }
 
