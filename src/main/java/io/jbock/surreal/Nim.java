@@ -20,34 +20,25 @@ public final class Nim {
     List<Nim> moves() {
         List<Nim> result = new ArrayList<>();
         for (int j = 0; j < state.length; j++) {
-            int[] sum = sum(j);
-            int translated = translate(sum);
-            if (translated < state[j]) {
-                result.add(set(j, translated));
+            int sum = translate(sum(j));
+            if (sum < state[j]) {
+                result.add(set(j, sum));
             }
         }
         return result;
     }
 
-    Nim set(int i, int n) {
+    private Nim set(int i, int n) {
         int[] newState = Arrays.copyOf(state, state.length);
         newState[i] = n;
         return new Nim(newState);
     }
 
-    int nimSum() {
-        int[] sum = new int[0];
-        for (int s : state) {
-            sum = nimSum(sum, bin(s));
-        }
-        return translate(sum);
-    }
-
-    int[] bin(int n) {
+    int[] binary(int n) {
         return bin(BigInteger.valueOf(n));
     }
 
-    int[] bin(BigInteger n) {
+    private int[] bin(BigInteger n) {
         int[] result = new int[n.bitLength()];
         for (int i = 0; i < result.length; i++) {
             result[i] = n.testBit(i) ? 1 : 0;
@@ -55,32 +46,19 @@ public final class Nim {
         return result;
     }
 
-    int[] nimSum(int[] a, int[] b) {
-        int[] result = new int[Math.max(a.length, b.length)];
-        for (int i = 0; i < result.length; i++) {
-            int k = i >= a.length ? 0 : a[i];
-            int l = i >= b.length ? 0 : b[i];
-            result[i] = (k + l) % 2;
-        }
-        return result;
-    }
-
-    int[] nimSum(int[] a, int n) {
-        return nimSum(a, bin(n));
-    }
-
     int translate(int[] bin) {
         int result = 0;
-        for (int i = 0; i < bin.length; i++) {
-            int b = bin[i];
-            result += b * Math.pow(2, i);
+        int pow = 1;
+        for (int i : bin) {
+            result += i * pow;
+            pow *= 2;
         }
         return result;
     }
 
     @Override
     public String toString() {
-        return Arrays.toString(state) + " | " + nimSum();
+        return Arrays.toString(state);
     }
 
     private int[] sum(int exclude) {
@@ -90,7 +68,7 @@ public final class Nim {
                 continue;
             }
             int i = state[j];
-            result = add(result, bin(i));
+            result = add(result, binary(i));
         }
         return result;
     }
