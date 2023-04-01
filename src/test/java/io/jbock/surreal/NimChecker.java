@@ -5,9 +5,9 @@ import javax.swing.SwingUtilities;
 class NimChecker {
 
     public static void main(String[] args) {
-        NimWindow w = NimWindow.create();
+        NimPresenter presenter = NimPresenter.create();
         SwingUtilities.invokeLater(() -> {
-            w.set(Nim.create(3, 4, 6));
+            presenter.set(Nim.create(3, 4, 6));
         });
     }
 }

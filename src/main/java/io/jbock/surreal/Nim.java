@@ -28,9 +28,9 @@ public final class Nim {
         return result;
     }
 
-    private Nim set(int i, int n) {
+    Nim set(int row, int n) {
         int[] newState = Arrays.copyOf(state, state.length);
-        newState[i] = n;
+        newState[row] = n;
         return new Nim(newState);
     }
 

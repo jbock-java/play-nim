@@ -18,7 +18,10 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
@@ -26,34 +29,15 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class NimWindow extends JFrame {
 
     private Nim nim;
 
-    private final List<HoverShape> shapes = new ArrayList<>();
+    private final List<Dot> shapes = new ArrayList<>();
 
-    private HoverShape hover;
-
-    private static final class HoverShape {
-        final int n;
-        final int row;
-        final Ellipse2D.Float shape;
-        boolean hover;
-
-        private HoverShape(int n, int row, Ellipse2D.Float shape) {
-            this.n = n;
-            this.row = row;
-            this.shape = shape;
-        }
-
-        boolean geq(HoverShape other) {
-            if (other == null) {
-                return false;
-            }
-            return row == other.row && n >= other.n;
-        }
-    }
+    private Dot hover;
 
     private static final int WIDTH_CANVAS = 560;
     private static final int HEIGHT = 400;
@@ -68,39 +52,35 @@ public class NimWindow extends JFrame {
         }
     };
 
-    private final MouseMotionListener mouseListener = new MouseMotionListener() {
-        @Override
-        public void mouseDragged(MouseEvent e) {
-        }
+    private final MouseMotionListener mouseListener = new MouseAdapter() {
 
         @Override
         public void mouseMoved(MouseEvent e) {
             if (hover != null && hover.shape.contains(e.getX(), e.getY())) {
                 return;
             }
-            boolean found = false;
-            boolean update = false;
-            for (HoverShape f : shapes) {
-                if (f.shape.contains(e.getX(), e.getY())) {
-                    hover = f;
-                    if (!f.hover) {
-                        update = true;
-                    }
-                    f.hover = true;
-                    found = true;
-                } else {
-                    if (f.hover) {
-                        update = true;
-                    }
+            boolean hoverFound = false;
+            for (Dot f : shapes) {
+                if (hoverFound) {
                     f.hover = false;
-                } 
+                    continue;
+                }
+                if (f.shape.contains(e.getX(), e.getY())) {
+                    hoverFound = true;
+                    f.hover = true;
+                    hover = f;
+                } else {
+                    f.hover = false;
+                }
             }
-            if (!found) {
-                hover = null;
+            if (hoverFound) {
+                render();
+                return;
             }
-            if (update) {
+            if (hover != null) {
                 render();
             }
+            hover = null;
         }
     };
 
@@ -109,8 +89,8 @@ public class NimWindow extends JFrame {
     private final JPanel buttonPanel = new JPanel();
     private final JSplitPane splitPane = new JSplitPane();
     private final JScrollPane scrollPanel = new JScrollPane(actions);
-    private final JButton pauseButton = new JButton("Undo");
-    private final JButton editButton = new JButton("New Game");
+    private final JButton undoButton = new JButton("Undo");
+    private final JButton newGameButton = new JButton("New Game");
 
     private NimWindow() {
         super("The Game of Nim");
@@ -156,8 +136,8 @@ public class NimWindow extends JFrame {
         sidePanel.add(scrollPanel, BorderLayout.CENTER);
         buttonPanel.setSize(WIDTH_PANEL, HEIGHT_BUTTON_PANE);
         buttonPanel.setLayout(new FlowLayout());
-        buttonPanel.add(pauseButton);
-        buttonPanel.add(editButton);
+        buttonPanel.add(undoButton);
+        buttonPanel.add(newGameButton);
         sidePanel.add(buttonPanel, BorderLayout.SOUTH);
 
         // Color
@@ -178,7 +158,7 @@ public class NimWindow extends JFrame {
                 int x = 20 + 26 * n;
                 int y = 20 + 26 * row;
                 Ellipse2D.Float f = new Ellipse2D.Float(x, y, 20, 20);
-                shapes.add(new HoverShape(n, row, f));
+                shapes.add(new Dot(n, row, f));
             }
         }
         canvas.repaint();
@@ -190,11 +170,32 @@ public class NimWindow extends JFrame {
         }
         BufferStrategy bufferStrategy = getBufferStrategy();
         Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
-        for (HoverShape f : shapes) {
+        for (Dot f : shapes) {
             g.setPaint(f.geq(hover) ? Color.RED : Color.CYAN);
             g.fill(f.shape);
         }
         Toolkit.getDefaultToolkit().sync();
         g.dispose();
+    }
+
+    void setOnClick(Consumer<Nim> onClick) {
+        canvas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                for (Dot dot : shapes) {
+                    if (dot.shape.contains(e.getX(), e.getY())) {
+                        if (hover == null || !hover.hover || hover != dot) {
+                            return;
+                        }
+                        onClick.accept(nim.set(dot.row, dot.n));
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    void setOnNewGame(Runnable onNewGame) {
+        newGameButton.addActionListener(e -> onNewGame.run());
     }
 }
