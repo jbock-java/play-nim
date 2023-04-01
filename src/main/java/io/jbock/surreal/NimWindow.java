@@ -1,5 +1,6 @@
 package io.jbock.surreal;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -17,9 +18,8 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.TextArea;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -33,17 +33,22 @@ import java.util.function.Consumer;
 
 public class NimWindow extends JFrame {
 
+    public static final String TITLE = "The Game of Nim";
     private Nim nim;
 
     private final List<Dot> shapes = new ArrayList<>();
 
     private Dot hover;
 
-    private static final int WIDTH_CANVAS = 560;
-    private static final int HEIGHT = 400;
-
-    public static final int WIDTH_PANEL = 280;
-    public static final int HEIGHT_BUTTON_PANE = 20;
+    private final DefaultListModel<Nim> actionsModel = new DefaultListModel<>();
+    private final JList<Nim> actions = new JList<>(actionsModel);
+    private final JPanel sidePanel = new JPanel();
+    private final JPanel rightPanel = new JPanel();
+    private final JPanel buttonPanel = new JPanel();
+    private final JSplitPane splitPane = new JSplitPane();
+    private final JScrollPane scrollPanel = new JScrollPane(actions);
+    private final JButton computerMoveButton = new JButton("Computer Move");
+    private final JButton newGameButton = new JButton("New Game");
 
     private final Canvas canvas = new Canvas() {
         @Override
@@ -51,6 +56,14 @@ public class NimWindow extends JFrame {
             render();
         }
     };
+    
+    private static final int WIDTH_CANVAS = 600;
+    private static final int HEIGHT_CANVAS = 260;
+    private static final int HEIGHT = 320;
+
+    public static final int WIDTH_PANEL = 300;
+    public static final int HEIGHT_BUTTON_PANE = 20;
+
 
     private final MouseMotionListener mouseListener = new MouseAdapter() {
 
@@ -83,17 +96,10 @@ public class NimWindow extends JFrame {
             hover = null;
         }
     };
-
-    private final JList<Nim> actions = new JList<>();
-    private final JPanel sidePanel = new JPanel();
-    private final JPanel buttonPanel = new JPanel();
-    private final JSplitPane splitPane = new JSplitPane();
-    private final JScrollPane scrollPanel = new JScrollPane(actions);
-    private final JButton undoButton = new JButton("Undo");
-    private final JButton newGameButton = new JButton("New Game");
+    private TextArea textArea = new TextArea();
 
     private NimWindow() {
-        super("The Game of Nim");
+        super(TITLE);
     }
 
     static NimWindow create() {
@@ -118,14 +124,20 @@ public class NimWindow extends JFrame {
 
     private void createElements() {
         setResizable(false);
-        canvas.setSize(WIDTH_CANVAS, HEIGHT);
+        textArea.setEditable(false);
+        textArea.setRows(2);
+        textArea.setSize(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS);
+        textArea.setMaximumSize(new Dimension(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS));
+        textArea.setPreferredSize(new Dimension(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS));
+        canvas.setMinimumSize(new Dimension(WIDTH_CANVAS, HEIGHT_CANVAS));
+        canvas.setSize(WIDTH_CANVAS, HEIGHT_CANVAS);
         canvas.setVisible(true);
         canvas.setFocusable(false);
         canvas.setBackground(Color.DARK_GRAY);
         getContentPane().add(splitPane);
         splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(sidePanel);
-        splitPane.setRightComponent(canvas);
+        splitPane.setRightComponent(rightPanel);
         splitPane.setEnabled(false);
         actions.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
         actions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -133,10 +145,13 @@ public class NimWindow extends JFrame {
         sidePanel.setSize(WIDTH_PANEL, HEIGHT);
         splitPane.setMinimumSize(new Dimension(WIDTH_PANEL, HEIGHT));
         sidePanel.setLayout(new BorderLayout());
+        rightPanel.setLayout(new BorderLayout());
+        rightPanel.add(canvas, BorderLayout.CENTER);
+        rightPanel.add(textArea, BorderLayout.SOUTH);
         sidePanel.add(scrollPanel, BorderLayout.CENTER);
         buttonPanel.setSize(WIDTH_PANEL, HEIGHT_BUTTON_PANE);
         buttonPanel.setLayout(new FlowLayout());
-        buttonPanel.add(undoButton);
+        buttonPanel.add(computerMoveButton);
         buttonPanel.add(newGameButton);
         sidePanel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -150,6 +165,10 @@ public class NimWindow extends JFrame {
 
     void set(Nim nim) {
         this.nim = nim;
+        if (actionsModel.isEmpty() || !nim.equals(actionsModel.get(actionsModel.size() - 1))) {
+            actionsModel.addElement(nim);
+        }
+        setTitle(TITLE + " - " + nim);
         shapes.clear();
         int[] state = nim.state();
         for (int row = 0; row < state.length; row++) {
@@ -197,5 +216,30 @@ public class NimWindow extends JFrame {
 
     void setOnNewGame(Runnable onNewGame) {
         newGameButton.addActionListener(e -> onNewGame.run());
+    }
+
+    void setOnHistoryClick(Consumer<Nim> onClick) {
+        actions.addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+            int index;
+            if (actions.getSelectionModel().isSelectedIndex(e.getFirstIndex())) {
+                index = e.getFirstIndex();
+            } else {
+                index = e.getLastIndex();
+            }
+            if (index < actions.getModel().getSize()) {
+                onClick.accept(actions.getModel().getElementAt(index));
+            }
+        });
+    }
+
+    void setOnComputerMoveButtonClicked(Runnable onComputerMove) {
+        computerMoveButton.addActionListener(e -> onComputerMove.run());
+    }
+
+    void setText(String text) {
+        textArea.setText(text);
     }
 }

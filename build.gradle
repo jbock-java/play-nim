@@ -28,6 +28,7 @@ tasks.withType(GenerateModuleMetadata) {
 }
 
 dependencies {
+    implementation('io.github.jbock-java:parmigiano:1.02')
     testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
 }
 

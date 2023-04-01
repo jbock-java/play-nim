@@ -2,7 +2,6 @@ package io.jbock.surreal;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -68,8 +67,7 @@ class NimTest {
 
     @Test
     void testBinary() {
-        Nim nim = Nim.create(1, 1, 1);
-        int[] bin = nim.binary(13);
+        int[] bin = Nim.binary(13);
         assertArrayEquals(new int[]{1, 0, 1, 1}, bin);
     }
 }

@@ -1,9 +1,12 @@
 package io.jbock.surreal;
 
+import io.parmigiano.Permutation;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class Nim {
 
@@ -15,6 +18,29 @@ public final class Nim {
 
     static Nim create(int... state) {
         return new Nim(state);
+    }
+
+    static Nim random(int rows) {
+        int[] state = new int[rows];
+        while (true) {
+            for (int i = 0; i < rows; i++) {
+                int n = ThreadLocalRandom.current().nextInt(20) + 1;
+                state[i] = n;
+            }
+            if (good(state)) {
+                return create(state);
+            }
+        }
+    }
+
+    private static boolean good(int[] state) {
+        if (translate(sum(state, -1)) == 0) {
+            return false;
+        }
+        if (state.length != 3) {
+            return true;
+        }
+        return state[0] != state[1] && state[1] != state[2] && state[0] != state[2];
     }
 
     List<Nim> moves() {
@@ -34,11 +60,11 @@ public final class Nim {
         return new Nim(newState);
     }
 
-    int[] binary(int n) {
+    static int[] binary(int n) {
         return bin(BigInteger.valueOf(n));
     }
 
-    private int[] bin(BigInteger n) {
+    private static int[] bin(BigInteger n) {
         int[] result = new int[n.bitLength()];
         for (int i = 0; i < result.length; i++) {
             result[i] = n.testBit(i) ? 1 : 0;
@@ -46,7 +72,7 @@ public final class Nim {
         return result;
     }
 
-    int translate(int[] bin) {
+    private static int translate(int[] bin) {
         int result = 0;
         int pow = 1;
         for (int i : bin) {
@@ -62,6 +88,10 @@ public final class Nim {
     }
 
     private int[] sum(int exclude) {
+        return sum(state, exclude);
+    }
+
+    private static int[] sum(int[] state, int exclude) {
         int[] result = new int[0];
         for (int j = 0; j < state.length; j++) {
             if (j == exclude) {
@@ -73,7 +103,7 @@ public final class Nim {
         return result;
     }
 
-    private int[] add(int[] a, int[] b) {
+    private static int[] add(int[] a, int[] b) {
         int[] result = new int[Math.max(a.length, b.length)];
         for (int i = 0; i < result.length; i++) {
             int ai = i >= a.length ? 0 : a[i];
@@ -98,5 +128,26 @@ public final class Nim {
 
     int[] state() {
         return state;
+    }
+
+    Nim randomMove() {
+        Permutation p = Permutation.random(state.length);
+        int[] newState = p.apply(state);
+        for (int i = 0; i < newState.length; i++) {
+            if (newState[i] > 0) {
+                newState[i] = newState[i] - Math.max(1, ThreadLocalRandom.current().nextInt(newState[i] + 1));
+                break;
+            }
+        }
+        return create(p.invert().apply(newState));
+    }
+
+    boolean isEmpty() {
+        for (int i : state) {
+            if (i != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 }
