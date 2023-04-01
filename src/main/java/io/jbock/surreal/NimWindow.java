@@ -97,6 +97,7 @@ public class NimWindow extends JFrame {
             hover = null;
         }
     };
+    private final HistoryListener listSelectionListener = new HistoryListener(actions);
 
     private NimWindow() {
         super(TITLE);
@@ -223,20 +224,8 @@ public class NimWindow extends JFrame {
     }
 
     void setOnHistoryClick(Consumer<Nim> onClick) {
-        actions.addListSelectionListener(e -> {
-            if (e.getValueIsAdjusting()) {
-                return;
-            }
-            int index;
-            if (actions.getSelectionModel().isSelectedIndex(e.getFirstIndex())) {
-                index = e.getFirstIndex();
-            } else {
-                index = e.getLastIndex();
-            }
-            if (index < actions.getModel().getSize()) {
-                onClick.accept(actions.getModel().getElementAt(index));
-            }
-        });
+        listSelectionListener.setOnClick(onClick);
+        actions.addListSelectionListener(listSelectionListener);
     }
 
     void setOnComputerMoveButtonClicked(Runnable onComputerMove) {
@@ -245,5 +234,15 @@ public class NimWindow extends JFrame {
 
     void setText(String text) {
         textArea.setText(text);
+    }
+
+    void clearHistory() {
+        actionsModel.clear();
+    }
+
+    void clearSelection() {
+        actions.removeListSelectionListener(listSelectionListener);
+        actions.clearSelection();
+        actions.addListSelectionListener(listSelectionListener);
     }
 }

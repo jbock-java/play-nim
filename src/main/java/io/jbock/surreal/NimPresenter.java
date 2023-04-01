@@ -19,12 +19,14 @@ class NimPresenter {
         NimPresenter result = new NimPresenter(window);
         window.setOnClick(nim -> {
             result.state = nim;
+            window.clearSelection();
             window.set(nim);
             result.onComputerMoveButtonClicked();
         });
         window.setOnNewGame(() -> {
             window.setText("Let's start!!!");
-            result.state = Nim.random(3);            
+            window.clearHistory();
+            result.state = Nim.random(ThreadLocalRandom.current().nextInt(4) + 3);            
             window.set(result.state);
         });
         window.setOnHistoryClick(nim -> {
@@ -37,6 +39,7 @@ class NimPresenter {
 
     void onComputerMoveButtonClicked() {
         if (state.isEmpty()) {
+            window.set(state);
             window.setText("You won!!!");
             return;
         }
@@ -51,9 +54,9 @@ class NimPresenter {
             } 
             return;
         }
-        window.setText("Wow. It was a good move.");
         state = state.randomMove();
         window.set(state);
+        window.setText("Wow. It was a good move.");
     }
 
     void set(Nim nim) {
