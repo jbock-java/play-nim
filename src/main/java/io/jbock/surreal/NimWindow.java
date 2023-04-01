@@ -19,13 +19,41 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferStrategy;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NimWindow extends JFrame {
-    
+
     private Nim nim;
+
+    private final List<HoverShape> shapes = new ArrayList<>();
+
+    private HoverShape hover;
+
+    private static final class HoverShape {
+        final int n;
+        final int row;
+        final Ellipse2D.Float shape;
+        boolean hover;
+
+        private HoverShape(int n, int row, Ellipse2D.Float shape) {
+            this.n = n;
+            this.row = row;
+            this.shape = shape;
+        }
+
+        boolean geq(HoverShape other) {
+            if (other == null) {
+                return false;
+            }
+            return row == other.row && n >= other.n;
+        }
+    }
 
     private static final int WIDTH_CANVAS = 560;
     private static final int HEIGHT = 400;
@@ -36,7 +64,43 @@ public class NimWindow extends JFrame {
     private final Canvas canvas = new Canvas() {
         @Override
         public void paint(Graphics g) {
-            paintOnCanvas();
+            render();
+        }
+    };
+
+    private final MouseMotionListener mouseListener = new MouseMotionListener() {
+        @Override
+        public void mouseDragged(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            if (hover != null && hover.shape.contains(e.getX(), e.getY())) {
+                return;
+            }
+            boolean found = false;
+            boolean update = false;
+            for (HoverShape f : shapes) {
+                if (f.shape.contains(e.getX(), e.getY())) {
+                    hover = f;
+                    if (!f.hover) {
+                        update = true;
+                    }
+                    f.hover = true;
+                    found = true;
+                } else {
+                    if (f.hover) {
+                        update = true;
+                    }
+                    f.hover = false;
+                } 
+            }
+            if (!found) {
+                hover = null;
+            }
+            if (update) {
+                render();
+            }
         }
     };
 
@@ -101,32 +165,36 @@ public class NimWindow extends JFrame {
         buttonPanel.setBackground(Color.DARK_GRAY);
         actions.setBackground(Color.DARK_GRAY);
         sidePanel.setBackground(Color.DARK_GRAY);
+        canvas.addMouseMotionListener(mouseListener);
     }
 
     void set(Nim nim) {
         this.nim = nim;
+        shapes.clear();
+        int[] state = nim.state();
+        for (int row = 0; row < state.length; row++) {
+            int i = state[row];
+            for (int n = 0; n < i; n++) {
+                int x = 20 + 26 * n;
+                int y = 20 + 26 * row;
+                Ellipse2D.Float f = new Ellipse2D.Float(x, y, 20, 20);
+                shapes.add(new HoverShape(n, row, f));
+            }
+        }
         canvas.repaint();
     }
 
-    private void paintOnCanvas() {
+    private void render() {
         if (nim == null) {
             return;
         }
         BufferStrategy bufferStrategy = getBufferStrategy();
         Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
-        int[] state = nim.state();
-        g.setPaint(Color.CYAN);
-        for (int k = 0; k < state.length; k++) {
-            int i = state[k];
-            for (int j = 0; j < i; j++) {
-                int x = 20 + 26 * j;
-                int y = 20 + 26 * k;
-                Ellipse2D.Float f = new Ellipse2D.Float(x, y, 20, 20);
-                g.fill(f);
-            }
+        for (HoverShape f : shapes) {
+            g.setPaint(f.geq(hover) ? Color.RED : Color.CYAN);
+            g.fill(f.shape);
         }
-        bufferStrategy.show();
-        g.dispose();
         Toolkit.getDefaultToolkit().sync();
+        g.dispose();
     }
 }
