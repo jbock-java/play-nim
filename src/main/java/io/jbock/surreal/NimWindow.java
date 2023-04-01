@@ -49,6 +49,7 @@ public class NimWindow extends JFrame {
     private final JScrollPane scrollPanel = new JScrollPane(actions);
     private final JButton computerMoveButton = new JButton("Computer Move");
     private final JButton newGameButton = new JButton("New Game");
+    private final TextArea textArea = new TextArea();
 
     private final Canvas canvas = new Canvas() {
         @Override
@@ -58,7 +59,7 @@ public class NimWindow extends JFrame {
     };
     
     private static final int WIDTH_CANVAS = 600;
-    private static final int HEIGHT_CANVAS = 260;
+    private static final int HEIGHT_CANVAS = 280;
     private static final int HEIGHT = 320;
 
     public static final int WIDTH_PANEL = 300;
@@ -96,7 +97,6 @@ public class NimWindow extends JFrame {
             hover = null;
         }
     };
-    private TextArea textArea = new TextArea();
 
     private NimWindow() {
         super(TITLE);
@@ -125,7 +125,7 @@ public class NimWindow extends JFrame {
     private void createElements() {
         setResizable(false);
         textArea.setEditable(false);
-        textArea.setRows(2);
+        textArea.setRows(1);
         textArea.setSize(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS);
         textArea.setMaximumSize(new Dimension(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS));
         textArea.setPreferredSize(new Dimension(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS));
@@ -164,8 +164,12 @@ public class NimWindow extends JFrame {
     }
 
     void set(Nim nim) {
+        set(nim, true);        
+    }
+
+    void set(Nim nim, boolean addToHistory) {
         this.nim = nim;
-        if (actionsModel.isEmpty() || !nim.equals(actionsModel.get(actionsModel.size() - 1))) {
+        if (addToHistory && (actionsModel.isEmpty() || !nim.equals(actionsModel.get(actionsModel.size() - 1)))) {
             actionsModel.addElement(nim);
         }
         setTitle(TITLE + " - " + nim);

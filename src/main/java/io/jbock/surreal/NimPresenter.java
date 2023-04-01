@@ -29,7 +29,7 @@ class NimPresenter {
         });
         window.setOnHistoryClick(nim -> {
             result.state = nim;
-            window.set(result.state);
+            window.set(result.state, false);
         });
         window.setOnComputerMoveButtonClicked(result::onComputerMoveButtonClicked);
         return result;
