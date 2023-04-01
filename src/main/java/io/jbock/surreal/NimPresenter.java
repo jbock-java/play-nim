@@ -26,7 +26,7 @@ class NimPresenter {
         window.setOnNewGame(() -> {
             window.setText("Let's start!!!");
             window.clearHistory();
-            result.state = Nim.random(ThreadLocalRandom.current().nextInt(4) + 3);            
+            result.state = Nim.random(ThreadLocalRandom.current().nextInt(2) + 3);            
             window.set(result.state);
         });
         window.setOnHistoryClick(nim -> {

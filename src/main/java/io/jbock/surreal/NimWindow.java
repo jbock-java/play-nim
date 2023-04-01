@@ -173,7 +173,6 @@ public class NimWindow extends JFrame {
         if (addToHistory && (actionsModel.isEmpty() || !nim.equals(actionsModel.get(actionsModel.size() - 1)))) {
             actionsModel.addElement(nim);
         }
-        setTitle(TITLE + " - " + nim);
         shapes.clear();
         int[] state = nim.state();
         for (int row = 0; row < state.length; row++) {

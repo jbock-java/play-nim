@@ -5,7 +5,9 @@ import io.parmigiano.Permutation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class Nim {
@@ -37,10 +39,13 @@ public final class Nim {
         if (translate(sum(state, -1)) == 0) {
             return false;
         }
-        if (state.length != 3) {
-            return true;
+        Set<Integer> test = new HashSet<>();
+        for (int i : state) {
+            if (!test.add(i)) {
+                return false;
+            }
         }
-        return state[0] != state[1] && state[1] != state[2] && state[0] != state[2];
+        return true;
     }
 
     List<Nim> moves() {

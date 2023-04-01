@@ -66,6 +66,29 @@ class NimTest {
     }
 
     @Test
+    void testPlay8() {
+        Nim nim = Nim.create(5, 16, 20);
+        List<Nim> moves = nim.moves();
+        assertEquals(List.of(Nim.create(4, 16, 20)), moves);
+    }
+
+    @Test
+    void testPlay9() {
+        Nim nim = Nim.create(2, 13, 14);
+        List<Nim> moves = nim.moves();
+        assertEquals(List.of(Nim.create(2, 12, 14)), moves);
+    }
+
+    @Test
+    void testPlay10() {
+        Nim nim = Nim.create(1, 3, 7, 6);
+        List<Nim> moves = nim.moves();
+        assertTrue(moves.contains(Nim.create(1, 0, 7, 6)));
+        assertTrue(moves.contains(Nim.create(1, 3, 4, 6)));
+        assertTrue(moves.contains(Nim.create(1, 3, 7, 5)));
+    }
+
+    @Test
     void testBinary() {
         int[] bin = Nim.binary(13);
         assertArrayEquals(new int[]{1, 0, 1, 1}, bin);
