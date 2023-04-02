@@ -6,6 +6,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 class NimPresenter {
 
+    private static final int MAX = 21;
+    
     private final NimWindow window;
     private final HistoryManager historyManager;
 
@@ -50,10 +52,10 @@ class NimPresenter {
     private Nim newGame(int rows) {
         if (explore) {
             int[] newState = new int[rows];
-            Arrays.fill(newState, 21);
+            Arrays.fill(newState, MAX);
             return Nim.create(newState);
         }
-        return Nim.random(rows, 21);
+        return Nim.random(rows, MAX);
     }
 
     private void onNumRowsChanged(int rows) {
@@ -100,8 +102,8 @@ class NimPresenter {
         return "Wow. It was a good move.";
     }
 
-    void set(Nim nim) {
-        state = nim;
-        historyManager.add(nim);
+    void init() {
+        state = Nim.random(3, MAX);
+        historyManager.add(state);
     }
 }
