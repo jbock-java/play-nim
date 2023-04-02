@@ -2,12 +2,16 @@ package io.jbock.surreal;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import java.awt.BorderLayout;
@@ -18,7 +22,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.TextArea;
+import java.awt.GridBagLayout;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -42,14 +46,14 @@ public class NimWindow extends JFrame {
 
     private final DefaultListModel<Nim> actionsModel = new DefaultListModel<>();
     private final JList<Nim> actions = new JList<>(actionsModel);
-    private final JPanel sidePanel = new JPanel();
+    private final JPanel leftPanel = new JPanel();
     private final JPanel rightPanel = new JPanel();
     private final JPanel buttonPanel = new JPanel();
     private final JSplitPane splitPane = new JSplitPane();
     private final JScrollPane scrollPanel = new JScrollPane(actions);
     private final JButton computerMoveButton = new JButton("Computer Move");
     private final JButton newGameButton = new JButton("New Game");
-    private final TextArea textArea = new TextArea();
+    private final JTextField messagePane = new JTextField();
 
     private final Canvas canvas = new Canvas() {
         @Override
@@ -125,11 +129,8 @@ public class NimWindow extends JFrame {
 
     private void createElements() {
         setResizable(false);
-        textArea.setEditable(false);
-        textArea.setRows(1);
-        textArea.setSize(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS);
-        textArea.setMaximumSize(new Dimension(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS));
-        textArea.setPreferredSize(new Dimension(WIDTH_CANVAS, HEIGHT - HEIGHT_CANVAS));
+        messagePane.setPreferredSize(new Dimension(WIDTH_CANVAS - 150, HEIGHT - HEIGHT_CANVAS));
+        messagePane.setEditable(false);
         canvas.setMinimumSize(new Dimension(WIDTH_CANVAS, HEIGHT_CANVAS));
         canvas.setSize(WIDTH_CANVAS, HEIGHT_CANVAS);
         canvas.setVisible(true);
@@ -137,30 +138,36 @@ public class NimWindow extends JFrame {
         canvas.setBackground(Color.DARK_GRAY);
         getContentPane().add(splitPane);
         splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setLeftComponent(sidePanel);
+        splitPane.setLeftComponent(leftPanel);
         splitPane.setRightComponent(rightPanel);
         splitPane.setEnabled(false);
         actions.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
         actions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         scrollPanel.setSize(WIDTH_PANEL, HEIGHT - HEIGHT_BUTTON_PANE);
-        sidePanel.setSize(WIDTH_PANEL, HEIGHT);
+        leftPanel.setSize(WIDTH_PANEL, HEIGHT);
         splitPane.setMinimumSize(new Dimension(WIDTH_PANEL, HEIGHT));
-        sidePanel.setLayout(new BorderLayout());
+        leftPanel.setLayout(new BorderLayout());
         rightPanel.setLayout(new BorderLayout());
         rightPanel.add(canvas, BorderLayout.CENTER);
-        rightPanel.add(textArea, BorderLayout.SOUTH);
-        sidePanel.add(scrollPanel, BorderLayout.CENTER);
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        panel.add(new JCheckBox("Explore"));
+        panel.add(messagePane);
+        panel.add(new JLabel("Rows"));
+        panel.add(new JSpinner());
+        rightPanel.add(panel, BorderLayout.SOUTH);
+        leftPanel.add(scrollPanel, BorderLayout.CENTER);
         buttonPanel.setSize(WIDTH_PANEL, HEIGHT_BUTTON_PANE);
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.add(computerMoveButton);
         buttonPanel.add(newGameButton);
-        sidePanel.add(buttonPanel, BorderLayout.SOUTH);
+        leftPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         // Color
         actions.setForeground(Color.WHITE);
         buttonPanel.setBackground(Color.DARK_GRAY);
         actions.setBackground(Color.DARK_GRAY);
-        sidePanel.setBackground(Color.DARK_GRAY);
+        leftPanel.setBackground(Color.DARK_GRAY);
 
         // Listeners
         canvas.addMouseMotionListener(mouseListener);
@@ -232,7 +239,7 @@ public class NimWindow extends JFrame {
     }
 
     void setText(String text) {
-        textArea.setText(text);
+        messagePane.setText(text);
     }
 
     void clearHistory() {
