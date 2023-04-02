@@ -57,7 +57,7 @@ public class NimWindow extends JFrame {
             render();
         }
     };
-    
+
     private static final int WIDTH_CANVAS = 600;
     private static final int HEIGHT_CANVAS = 280;
     private static final int HEIGHT = 320;
@@ -161,18 +161,15 @@ public class NimWindow extends JFrame {
         buttonPanel.setBackground(Color.DARK_GRAY);
         actions.setBackground(Color.DARK_GRAY);
         sidePanel.setBackground(Color.DARK_GRAY);
+
+        // Listeners
         canvas.addMouseMotionListener(mouseListener);
+        actions.addListSelectionListener(listSelectionListener);
+        actions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
     void set(Nim nim) {
-        set(nim, true);        
-    }
-
-    void set(Nim nim, boolean addToHistory) {
         this.nim = nim;
-        if (addToHistory && (actionsModel.isEmpty() || !nim.equals(actionsModel.get(actionsModel.size() - 1)))) {
-            actionsModel.addElement(nim);
-        }
         shapes.clear();
         int[] state = nim.state();
         for (int row = 0; row < state.length; row++) {
@@ -185,6 +182,10 @@ public class NimWindow extends JFrame {
             }
         }
         canvas.repaint();
+    }
+
+    void addToHistory(Nim nim) {
+        actionsModel.addElement(nim);
     }
 
     private void render() {
@@ -201,7 +202,7 @@ public class NimWindow extends JFrame {
         g.dispose();
     }
 
-    void setOnClick(Consumer<Nim> onClick) {
+    void setOnMove(Consumer<Nim> onMove) {
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
@@ -210,7 +211,7 @@ public class NimWindow extends JFrame {
                         if (hover == null || !hover.hover || hover != dot) {
                             return;
                         }
-                        onClick.accept(nim.set(dot.row, dot.n));
+                        onMove.accept(nim.set(dot.row, dot.n));
                         break;
                     }
                 }
@@ -224,7 +225,6 @@ public class NimWindow extends JFrame {
 
     void setOnHistoryClick(Consumer<Nim> onClick) {
         listSelectionListener.setOnClick(onClick);
-        actions.addListSelectionListener(listSelectionListener);
     }
 
     void setOnComputerMoveButtonClicked(Runnable onComputerMove) {
@@ -242,6 +242,12 @@ public class NimWindow extends JFrame {
     void clearSelection() {
         actions.removeListSelectionListener(listSelectionListener);
         actions.clearSelection();
+        actions.addListSelectionListener(listSelectionListener);
+    }
+
+    void setSelection(int selection) {
+        actions.removeListSelectionListener(listSelectionListener);
+        actions.setSelectedIndex(selection);
         actions.addListSelectionListener(listSelectionListener);
     }
 }

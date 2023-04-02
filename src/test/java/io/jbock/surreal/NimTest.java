@@ -13,25 +13,22 @@ class NimTest {
     @Test
     void testPlay() {
         Nim nim = Nim.create(1, 20, 17);
-        System.out.println(nim);
-        nim.moves();
-        System.out.println(nim);
+        List<Nim> moves = nim.moves();
+        assertEquals(List.of(Nim.create(1, 16, 17)), moves);
     }
 
     @Test
     void testPlay2() {
         Nim nim = Nim.create(3, 4, 5);
-        System.out.println(nim);
-        nim.moves();
-        System.out.println(nim);
+        List<Nim> moves = nim.moves();
+        assertEquals(List.of(Nim.create(1, 4, 5)), moves);
     }
 
     @Test
     void testPlay3() {
         Nim nim = Nim.create(12, 7, 8);
-        System.out.println(nim);
-        nim.moves();
-        System.out.println(nim);
+        List<Nim> moves = nim.moves();
+        assertEquals(List.of(Nim.create(12, 4, 8)), moves);
     }
 
     @Test
@@ -55,14 +52,14 @@ class NimTest {
     void testPlay6() {
         Nim nim = Nim.create(6, 3, 4);
         List<Nim> moves = nim.moves();
-        System.out.println(moves);
+        assertEquals(List.of(Nim.create(6, 2, 4)), moves);
     }
 
     @Test
     void testPlay7() {
         Nim nim = Nim.create(13, 7, 8);
         List<Nim> moves = nim.moves();
-        System.out.println(moves);
+        assertEquals(List.of(Nim.create(13, 5, 8)), moves);
     }
 
     @Test
