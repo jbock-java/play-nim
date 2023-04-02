@@ -14,6 +14,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerNumberModel;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
@@ -24,6 +25,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
+import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -34,6 +36,7 @@ import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class NimWindow extends JFrame {
 
@@ -102,6 +105,8 @@ public class NimWindow extends JFrame {
         }
     };
     private final HistoryListener listSelectionListener = new HistoryListener(actions);
+    private final JSpinner numRows = new JSpinner();
+    private final JCheckBox explore = new JCheckBox("Explore");
 
     private NimWindow() {
         super(TITLE);
@@ -151,10 +156,11 @@ public class NimWindow extends JFrame {
         rightPanel.add(canvas, BorderLayout.CENTER);
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
-        panel.add(new JCheckBox("Explore"));
+        panel.add(explore);
         panel.add(messagePane);
         panel.add(new JLabel("Rows"));
-        panel.add(new JSpinner());
+        numRows.setModel(new SpinnerNumberModel(3, 3, 7, 1));
+        panel.add(numRows);
         rightPanel.add(panel, BorderLayout.SOUTH);
         leftPanel.add(scrollPanel, BorderLayout.CENTER);
         buttonPanel.setSize(WIDTH_PANEL, HEIGHT_BUTTON_PANE);
@@ -256,5 +262,20 @@ public class NimWindow extends JFrame {
         actions.removeListSelectionListener(listSelectionListener);
         actions.setSelectedIndex(selection);
         actions.addListSelectionListener(listSelectionListener);
+    }
+
+    void setOnNumRowsChanged(IntConsumer onNumRowsChanged) {
+        numRows.addChangeListener(e -> {
+            JSpinner source = (JSpinner) e.getSource();
+            onNumRowsChanged.accept(((int) source.getValue()));
+        });
+    }
+
+    void setOnExploreChanged(Consumer<Boolean> onExploreChanged) {
+        explore.addItemListener(e -> onExploreChanged.accept(e.getStateChange() == ItemEvent.SELECTED));
+    }
+
+    void setComputerMoveEnabled(boolean enabled) {
+        computerMoveButton.setEnabled(enabled);
     }
 }

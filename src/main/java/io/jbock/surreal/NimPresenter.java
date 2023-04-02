@@ -8,6 +8,8 @@ class NimPresenter {
     private final NimWindow window;
     private final HistoryManager historyManager;
 
+    private boolean explore;
+
     private Nim state;
 
     private NimPresenter(NimWindow window, HistoryManager historyManager) {
@@ -22,6 +24,8 @@ class NimPresenter {
         NimPresenter presenter = new NimPresenter(window, historyManager);
         window.setOnMove(presenter::onMove);
         window.setOnNewGame(presenter::onNewGame);
+        window.setOnNumRowsChanged(presenter::onNumRowsChanged);
+        window.setOnExploreChanged(presenter::onExploreChanged);
         window.setOnHistoryClick(presenter::onHistoryClick);
         window.setOnComputerMoveButtonClicked(presenter::onComputerMoveButtonClicked);
         return presenter;
@@ -30,14 +34,34 @@ class NimPresenter {
     private void onMove(Nim newState) {
         state = newState;
         historyManager.add(state);
-        onComputerMoveButtonClicked();
+        if (!explore) {
+            window.setText(onComputerMoveButtonClicked());
+        }
     }
 
     private void onNewGame() {
-        window.setText("Let's start!!!");
+        window.setText(explore ? "" : "Let's start!!!");
         window.clearHistory();
-        state = Nim.random(ThreadLocalRandom.current().nextInt(2) + 3);
+        state = Nim.random(state.rows());
         historyManager.add(state);
+    }
+
+    private void onNumRowsChanged(int rows) {
+        if (rows == state.rows()) {
+            return;
+        }
+        window.setText(explore ? "" : "Let's start!!!");
+        window.clearHistory();
+        state = Nim.random(rows);
+        historyManager.add(state);
+    }
+
+    private void onExploreChanged(boolean newValue) {
+        explore = newValue;
+        if (explore) {
+            window.setText("");
+        }
+        window.setComputerMoveEnabled(!explore);
     }
 
     private void onHistoryClick(Nim nim) {
@@ -46,29 +70,28 @@ class NimPresenter {
         window.set(state);
     }
 
-    private void onComputerMoveButtonClicked() {
+    private String onComputerMoveButtonClicked() {
         if (state.isEmpty()) {
             historyManager.add(state);
-            window.setText("You won!!!");
-            return;
+            return "You won!!!";
         }
         List<Nim> moves = state.moves();
         if (!moves.isEmpty()) {
             state = moves.get(ThreadLocalRandom.current().nextInt(moves.size()));
             historyManager.add(state);
             if (state.isEmpty()) {
-                window.setText("I won!!!");
+                return "I won!!!";
             } else {
-                window.setText("Phew. I am sure you could do better.");
+                return "Phew. I am sure you could do better.";
             }
-            return;
         }
         state = state.randomMove();
         historyManager.add(state);
-        window.setText("Wow. It was a good move.");
+        return "Wow. It was a good move.";
     }
 
     void set(Nim nim) {
+        state = nim;
         historyManager.add(nim);
     }
 }

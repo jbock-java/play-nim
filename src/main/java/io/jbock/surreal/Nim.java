@@ -155,4 +155,8 @@ public final class Nim {
         }
         return true;
     }
+
+    int rows() {
+        return state.length;
+    }
 }
