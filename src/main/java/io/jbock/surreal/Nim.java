@@ -36,7 +36,7 @@ public final class Nim {
     }
 
     private static boolean good(int[] state) {
-        if (translate(sum(state, -1)) == 0) {
+        if (isZero(sum(state))) {
             return false;
         }
         Set<Integer> test = new HashSet<>();
@@ -96,6 +96,10 @@ public final class Nim {
         return sum(state, exclude);
     }
 
+    private static int[] sum(int[] state) {
+        return sum(state, -1);
+    }
+
     private static int[] sum(int[] state, int exclude) {
         int[] result = new int[0];
         for (int j = 0; j < state.length; j++) {
@@ -148,7 +152,11 @@ public final class Nim {
     }
 
     boolean isEmpty() {
-        for (int i : state) {
+        return isZero(state);
+    }
+
+    private static boolean isZero(int[] ints) {
+        for (int i : ints) {
             if (i != 0) {
                 return false;
             }
