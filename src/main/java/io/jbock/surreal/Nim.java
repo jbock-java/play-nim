@@ -22,11 +22,11 @@ public final class Nim {
         return new Nim(state);
     }
 
-    static Nim random(int rows) {
+    static Nim random(int rows, int max) {
         int[] state = new int[rows];
         while (true) {
             for (int i = 0; i < rows; i++) {
-                int n = ThreadLocalRandom.current().nextInt(20) + 1;
+                int n = ThreadLocalRandom.current().nextInt(max - 1) + 1;
                 state[i] = n;
             }
             if (good(state)) {

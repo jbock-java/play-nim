@@ -1,5 +1,6 @@
 package io.jbock.surreal;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -42,8 +43,17 @@ class NimPresenter {
     private void onNewGame() {
         window.setText(explore ? "" : "Let's start!!!");
         window.clearHistory();
-        state = Nim.random(state.rows());
+        state = newGame(state.rows());
         historyManager.add(state);
+    }
+
+    private Nim newGame(int rows) {
+        if (explore) {
+            int[] newState = new int[rows];
+            Arrays.fill(newState, 21);
+            return Nim.create(newState);
+        }
+        return Nim.random(rows, 21);
     }
 
     private void onNumRowsChanged(int rows) {
@@ -52,7 +62,7 @@ class NimPresenter {
         }
         window.setText(explore ? "" : "Let's start!!!");
         window.clearHistory();
-        state = Nim.random(rows);
+        state = newGame(rows);
         historyManager.add(state);
     }
 
