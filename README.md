@@ -3,6 +3,7 @@ with some improvements:
 
 * Two-player mode ("Explore mode")
 * Play with more than three rows
+* Games never start in a losing position
 * Undo
 
 This is normal-play [Nim](https://en.wikipedia.org/wiki/Nim),
