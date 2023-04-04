@@ -41,6 +41,7 @@ import java.util.function.IntConsumer;
 public class NimWindow extends JFrame {
 
     public static final String TITLE = "The Game of Nim";
+    private static final Color CYAN = new Color(0, 183, 235);
     private Nim nim;
 
     private final List<Dot> shapes = new ArrayList<>();
@@ -208,8 +209,13 @@ public class NimWindow extends JFrame {
         BufferStrategy bufferStrategy = getBufferStrategy();
         Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
         for (Dot f : shapes) {
-            g.setPaint(f.geq(hover) ? Color.RED : Color.CYAN);
+            g.setPaint(f.geq(hover) ? Color.RED : CYAN);
             g.fill(f.shape);
+            if (f.le(hover)) {
+                g.setPaint(Color.WHITE);
+                int width = g.getFontMetrics().stringWidth(Integer.toString(f.n + 1));
+                g.drawString(Integer.toString(f.n + 1), f.shape.x + 10.5f - (width / 2f), f.shape.y + 16);
+            }
         }
         Toolkit.getDefaultToolkit().sync();
         g.dispose();

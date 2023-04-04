@@ -24,8 +24,13 @@ final class Dot {
         return row == other.row && n >= other.n;
     }
 
-    @Override
-    public String toString() {
-        return Boolean.toString(hover);
+    boolean le(Dot other) {
+        if (other == null) {
+            return false;
+        }
+        if (!other.hover) {
+            return false;
+        }
+        return row == other.row && n < other.n;
     }
 }
