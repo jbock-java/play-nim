@@ -195,7 +195,11 @@ public class NimWindow extends JFrame {
                 shapes.add(new Dot(n, row, f));
             }
         }
-        canvas.repaint();
+        hover = null;
+        BufferStrategy bufferStrategy = getBufferStrategy();
+        Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
+        g.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        render(g);
     }
 
     void addToHistory(Nim nim) {
@@ -208,6 +212,13 @@ public class NimWindow extends JFrame {
         }
         BufferStrategy bufferStrategy = getBufferStrategy();
         Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
+        render(g);
+    }
+
+    private void render(Graphics2D g) {
+        if (nim == null) {
+            return;
+        }
         for (Dot f : shapes) {
             g.setPaint(f.geq(hover) ? Color.RED : CYAN);
             g.fill(f.shape);
