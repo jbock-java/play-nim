@@ -17,11 +17,11 @@ class HistoryManager {
         window.set(nim);
         Integer selection = history.get(nim);
         if (selection == null) {
-            history.put(nim, history.size());
+            selection = history.size();
+            history.put(nim, selection);
             window.addToHistory(nim);
-            window.clearSelection();
-        } else {
             window.setSelection(selection);
-        } 
+        }
+        window.setSelection(selection);
     }
 }
