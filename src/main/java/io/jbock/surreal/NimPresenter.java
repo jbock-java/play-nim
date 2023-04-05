@@ -89,7 +89,8 @@ class NimPresenter {
         }
         List<Nim> moves = state.moves();
         if (!moves.isEmpty()) {
-            state = moves.get(ThreadLocalRandom.current().nextInt(moves.size()));
+            Nim newState = moves.get(ThreadLocalRandom.current().nextInt(moves.size()));
+            state = newState;
             historyManager.add(state);
             if (state.isEmpty()) {
                 return "I won!!!";

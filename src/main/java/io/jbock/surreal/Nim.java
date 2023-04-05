@@ -144,6 +144,10 @@ public final class Nim {
         int[] newState = p.apply(state);
         for (int i = 0; i < newState.length; i++) {
             if (newState[i] > 0) {
+                if (newState[i] == 1) {
+                    newState[i] = 0;
+                    break;
+                }
                 newState[i] -= ThreadLocalRandom.current().nextInt(1, newState[i]);
                 break;
             }
