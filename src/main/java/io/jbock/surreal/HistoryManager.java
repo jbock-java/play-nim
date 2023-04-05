@@ -20,8 +20,12 @@ class HistoryManager {
             selection = history.size();
             history.put(nim, selection);
             window.addToHistory(nim);
-            window.setSelection(selection);
         }
         window.setSelection(selection);
+    }
+
+    void clear() {
+        history.clear();
+        window.clearHistory();
     }
 }

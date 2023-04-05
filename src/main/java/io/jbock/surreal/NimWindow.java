@@ -269,12 +269,6 @@ public class NimWindow extends JFrame {
         actionsModel.clear();
     }
 
-    void clearSelection() {
-        actions.removeListSelectionListener(listSelectionListener);
-        actions.clearSelection();
-        actions.addListSelectionListener(listSelectionListener);
-    }
-
     void setSelection(int selection) {
         actions.removeListSelectionListener(listSelectionListener);
         actions.setSelectedIndex(selection);

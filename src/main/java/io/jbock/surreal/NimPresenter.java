@@ -44,7 +44,7 @@ class NimPresenter {
 
     private void onNewGame() {
         window.setText(explore ? "" : "Let's start!!!");
-        window.clearHistory();
+        historyManager.clear();
         state = newGame(state.rows());
         historyManager.add(state);
     }
@@ -63,7 +63,7 @@ class NimPresenter {
             return;
         }
         window.setText(explore ? "" : "Let's start!!!");
-        window.clearHistory();
+        historyManager.clear();
         state = newGame(rows);
         historyManager.add(state);
     }
