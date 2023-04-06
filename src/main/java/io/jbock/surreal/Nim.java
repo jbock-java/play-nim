@@ -26,7 +26,7 @@ public final class Nim {
         int[] state = new int[rows];
         while (true) {
             for (int i = 0; i < rows; i++) {
-                int n = ThreadLocalRandom.current().nextInt(max - 1) + 1;
+                int n = ThreadLocalRandom.current().nextInt(1, max + 1);
                 state[i] = n;
             }
             if (good(state)) {
