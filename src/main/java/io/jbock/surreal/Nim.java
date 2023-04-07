@@ -140,19 +140,33 @@ public final class Nim {
     }
 
     Nim randomMove() {
-        Permutation p = Permutation.random(state.length);
-        int[] newState = p.apply(state);
-        for (int i = 0; i < newState.length; i++) {
+        for (int i = 0; i < 5; i++) {
+            int[] move = tryMove();
+            if (move != null && good(move)) {
+                return create(move);
+            }
+        }
+        int[] newState = Arrays.copyOf(state, state.length);
+        for (int i = 0; i < state.length; i++) {
             if (newState[i] > 0) {
-                if (newState[i] == 1) {
-                    newState[i] = 0;
-                    break;
-                }
-                newState[i] -= ThreadLocalRandom.current().nextInt(1, newState[i]);
+                newState[i] -= 1;
                 break;
             }
         }
-        return create(p.invert().apply(newState));
+        return create(newState);
+    }
+
+    private int[] tryMove() {
+        Permutation p = Permutation.random(state.length);
+        int[] newState = p.apply(state);
+        for (int i = 0; i < newState.length; i++) {
+            if (newState[i] <= 1) {
+                continue;
+            }
+            newState[i] -= ThreadLocalRandom.current().nextInt(1, newState[i]);
+            return p.invert().apply(newState);
+        }
+        return null;
     }
 
     boolean isEmpty() {
