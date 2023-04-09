@@ -6,7 +6,8 @@ final class Dot {
     final int n;
     final int row;
     final Ellipse2D.Float shape;
-    boolean hover;
+
+    private boolean hover;
 
     Dot(int n, int row, Ellipse2D.Float shape) {
         this.n = n;
@@ -32,5 +33,15 @@ final class Dot {
             return false;
         }
         return row == other.row && n < other.n;
+    }
+
+    boolean setHover(boolean hover) {
+        boolean result = this.hover ^ hover;
+        this.hover = hover;
+        return result;
+    }
+
+    boolean hover() {
+        return hover;
     }
 }

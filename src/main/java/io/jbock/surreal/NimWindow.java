@@ -74,35 +74,49 @@ public class NimWindow extends JFrame {
     public static final int WIDTH_PANEL = 300;
     public static final int HEIGHT_BUTTON_PANE = 20;
 
+    private boolean onMouseMoved(int x, int y) {
+        boolean hoverFound = false;
+        boolean anyChange = false;
+        for (Dot f : shapes) {
+            if (hoverFound) {
+                anyChange |= f.setHover(false);
+                continue;
+            }
+            if (f.shape.contains(x, y)) {
+                hoverFound = true;
+                anyChange |= f.setHover(true);
+                hover = f;
+            } else {
+                anyChange |= f.setHover(false);
+            }
+        }
+        if (!hoverFound) {
+            hover = null;
+        }
+        return anyChange;
+    }
+
     private final MouseMotionListener mouseMoveListener = new MouseAdapter() {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            if (hover != null && hover.shape.contains(e.getX(), e.getY())) {
-                return;
-            }
-            boolean hoverFound = false;
-            for (Dot f : shapes) {
-                if (hoverFound) {
-                    f.hover = false;
-                    continue;
-                }
-                if (f.shape.contains(e.getX(), e.getY())) {
-                    hoverFound = true;
-                    f.hover = true;
-                    hover = f;
-                } else {
-                    f.hover = false;
-                }
-            }
-            if (hoverFound) {
+            if (onMouseMoved(e.getX(), e.getY())) {
                 render();
-                return;
             }
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
             if (hover != null) {
-                render();
+                boolean contains = hover.shape.contains(e.getX(), e.getY());
+                if (!contains) {
+                    hoverColor = Color.RED;
+                    render();
+                } else {
+                    hoverColor = Color.GRAY;
+                    render();
+                }
             }
-            hover = null;
         }
     };
     private final HistoryListener listSelectionListener = new HistoryListener(actions);
@@ -220,7 +234,7 @@ public class NimWindow extends JFrame {
             return;
         }
         for (Dot f : shapes) {
-            if (f.hover) {
+            if (f.hover()) {
                 g.setPaint(hoverColor);
                 g.fill(f.shape);
                 continue;
@@ -241,21 +255,24 @@ public class NimWindow extends JFrame {
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                hoverColor = Color.RED;
                 for (Dot dot : shapes) {
                     if (dot.shape.contains(e.getX(), e.getY())) {
-                        if (hover == null || !hover.hover || hover != dot) {
-                            return;
+                        if (hover == null || !hover.hover() || hover != dot) {
+                            break;
                         }
                         onMove.accept(nim.set(dot.row, dot.n));
-                        break;
+                        return;
                     }
                 }
+                onMouseMoved(e.getX(), e.getY());
+                hoverColor = Color.RED;
+                render();
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-                hoverColor = Color.ORANGE;
+                onMouseMoved(e.getX(), e.getY());
+                hoverColor = Color.GRAY;
                 render();
             }
         });
