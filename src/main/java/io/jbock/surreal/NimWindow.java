@@ -42,12 +42,14 @@ public class NimWindow extends JFrame {
 
     public static final String TITLE = "The Game of Nim";
     private static final Color CYAN = new Color(0, 183, 235);
+    private static final Color COLOR_HOVER = Color.LIGHT_GRAY;
+    private static final Color COLOR_ACTIVE = Color.GRAY;
     private Nim nim;
 
     private final List<Dot> shapes = new ArrayList<>();
 
     private Dot hover;
-    private Color hoverColor = Color.RED;
+    private Color hoverColor = COLOR_HOVER;
 
     private final DefaultListModel<Nim> actionsModel = new DefaultListModel<>();
     private final JList<Nim> actions = new JList<>(actionsModel);
@@ -109,13 +111,8 @@ public class NimWindow extends JFrame {
         public void mouseDragged(MouseEvent e) {
             if (hover != null) {
                 boolean contains = hover.shape.contains(e.getX(), e.getY());
-                if (!contains) {
-                    hoverColor = Color.RED;
-                    render();
-                } else {
-                    hoverColor = Color.GRAY;
-                    render();
-                }
+                hoverColor = contains ? COLOR_ACTIVE : COLOR_HOVER;
+                render();
             }
         }
     };
@@ -199,6 +196,7 @@ public class NimWindow extends JFrame {
     void set(Nim nim) {
         this.nim = nim;
         shapes.clear();
+        hoverColor = COLOR_HOVER;
         int[] state = nim.state();
         for (int row = 0; row < state.length; row++) {
             int i = state[row];
@@ -234,14 +232,9 @@ public class NimWindow extends JFrame {
             return;
         }
         for (Dot f : shapes) {
-            if (f.hover()) {
-                g.setPaint(hoverColor);
-                g.fill(f.shape);
-                continue;
-            }
-            g.setPaint(f.gt(hover) ? Color.RED : CYAN);
+            g.setPaint(f.geq(hover) ? hoverColor : CYAN);
             g.fill(f.shape);
-            if (f.le(hover)) {
+            if (f.lt(hover)) {
                 g.setPaint(Color.WHITE);
                 int width = g.getFontMetrics().stringWidth(Integer.toString(f.n + 1));
                 g.drawString(Integer.toString(f.n + 1), f.shape.x + 10.5f - (width / 2f), f.shape.y + 16);
@@ -265,14 +258,14 @@ public class NimWindow extends JFrame {
                     }
                 }
                 onMouseMoved(e.getX(), e.getY());
-                hoverColor = Color.RED;
+                hoverColor = COLOR_HOVER;
                 render();
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
                 onMouseMoved(e.getX(), e.getY());
-                hoverColor = Color.GRAY;
+                hoverColor = COLOR_ACTIVE;
                 render();
             }
         });
