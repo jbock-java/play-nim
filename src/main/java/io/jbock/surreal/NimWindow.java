@@ -38,9 +38,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-public class NimWindow extends JFrame {
+class NimWindow extends JPanel {
 
-    public static final String TITLE = "The Game of Nim";
+    private static final String TITLE = "The Game of Nim";
     private static final Color CYAN = new Color(0, 183, 235);
     private static final Color COLOR_HOVER = Color.LIGHT_GRAY;
     private static final Color COLOR_ACTIVE = Color.GRAY;
@@ -121,31 +121,29 @@ public class NimWindow extends JFrame {
     private final JCheckBox explore = new JCheckBox("Explore");
 
     private NimWindow() {
-        super(TITLE);
     }
 
     static NimWindow create() {
+        JFrame frame = new JFrame(TITLE);
+        frame.setResizable(false);
         NimWindow view = new NimWindow();
-        view.setSize(WIDTH_CANVAS + WIDTH_PANEL, HEIGHT);
+        view.setOpaque(true);
         view.createElements();
-        view.setVisible(true);
-        view.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        view.getRootPane().registerKeyboardAction(
-                e -> view.dispatchEvent(new WindowEvent(view, WindowEvent.WINDOW_CLOSING)),
+        view.canvas.createBufferStrategy(1);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setContentPane(view);
+        frame.setSize(WIDTH_CANVAS + WIDTH_PANEL, HEIGHT);
+        frame.setLocationRelativeTo(null);
+        frame.pack();
+        frame.setVisible(true);
+        frame.getRootPane().registerKeyboardAction(
+                e -> frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING)),
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
-        view.canvas.createBufferStrategy(1);
-        view.setLocationRelativeTo(null);
         return view;
     }
 
-    @Override
-    public BufferStrategy getBufferStrategy() {
-        return canvas.getBufferStrategy();
-    }
-
     private void createElements() {
-        setResizable(false);
         messagePane.setPreferredSize(new Dimension(WIDTH_CANVAS - 150, HEIGHT - HEIGHT_CANVAS));
         messagePane.setEditable(false);
         canvas.setMinimumSize(new Dimension(WIDTH_CANVAS, HEIGHT_CANVAS));
@@ -153,7 +151,7 @@ public class NimWindow extends JFrame {
         canvas.setVisible(true);
         canvas.setFocusable(false);
         canvas.setBackground(Color.DARK_GRAY);
-        getContentPane().add(splitPane);
+        add(splitPane);
         splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(leftPanel);
         splitPane.setRightComponent(rightPanel);
@@ -208,7 +206,7 @@ public class NimWindow extends JFrame {
             }
         }
         hover = null;
-        BufferStrategy bufferStrategy = getBufferStrategy();
+        BufferStrategy bufferStrategy = canvas.getBufferStrategy();
         Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
         g.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         render(g);
@@ -222,7 +220,7 @@ public class NimWindow extends JFrame {
         if (nim == null) {
             return;
         }
-        BufferStrategy bufferStrategy = getBufferStrategy();
+        BufferStrategy bufferStrategy = canvas.getBufferStrategy();
         Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
         render(g);
     }

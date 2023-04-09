@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class Nim {
+final class Nim {
 
     private final int[] state;
 
