@@ -47,6 +47,7 @@ public class NimWindow extends JFrame {
     private final List<Dot> shapes = new ArrayList<>();
 
     private Dot hover;
+    private Color hoverColor = Color.RED;
 
     private final DefaultListModel<Nim> actionsModel = new DefaultListModel<>();
     private final JList<Nim> actions = new JList<>(actionsModel);
@@ -73,8 +74,7 @@ public class NimWindow extends JFrame {
     public static final int WIDTH_PANEL = 300;
     public static final int HEIGHT_BUTTON_PANE = 20;
 
-
-    private final MouseMotionListener mouseListener = new MouseAdapter() {
+    private final MouseMotionListener mouseMoveListener = new MouseAdapter() {
 
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -177,7 +177,7 @@ public class NimWindow extends JFrame {
         leftPanel.setBackground(Color.DARK_GRAY);
 
         // Listeners
-        canvas.addMouseMotionListener(mouseListener);
+        canvas.addMouseMotionListener(mouseMoveListener);
         actions.addListSelectionListener(listSelectionListener);
         actions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
@@ -220,7 +220,12 @@ public class NimWindow extends JFrame {
             return;
         }
         for (Dot f : shapes) {
-            g.setPaint(f.geq(hover) ? Color.RED : CYAN);
+            if (f.hover) {
+                g.setPaint(hoverColor);
+                g.fill(f.shape);
+                continue;
+            }
+            g.setPaint(f.gt(hover) ? Color.RED : CYAN);
             g.fill(f.shape);
             if (f.le(hover)) {
                 g.setPaint(Color.WHITE);
@@ -236,6 +241,7 @@ public class NimWindow extends JFrame {
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
+                hoverColor = Color.RED;
                 for (Dot dot : shapes) {
                     if (dot.shape.contains(e.getX(), e.getY())) {
                         if (hover == null || !hover.hover || hover != dot) {
@@ -245,6 +251,12 @@ public class NimWindow extends JFrame {
                         break;
                     }
                 }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                hoverColor = Color.ORANGE;
+                render();
             }
         });
     }

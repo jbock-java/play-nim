@@ -14,14 +14,14 @@ final class Dot {
         this.shape = shape;
     }
 
-    boolean geq(Dot other) {
+    boolean gt(Dot other) {
         if (other == null) {
             return false;
         }
         if (!other.hover) {
             return false;
         }
-        return row == other.row && n >= other.n;
+        return row == other.row && n > other.n;
     }
 
     boolean le(Dot other) {
