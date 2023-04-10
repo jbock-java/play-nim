@@ -37,6 +37,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
@@ -176,17 +177,6 @@ class NimWindow extends JPanel {
         getActionMap().put("KEY_" + keyStroke, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (hoverRow == -1) {
-                    int[] state = nim.state();
-                    for (int i = 0; i < state.length; i++) {
-                        int row = state[i];
-                        if (row >= 1) {
-                            hoverRow = i;
-                            hoverPos = row - 1;
-                            break;
-                        }
-                    }
-                }
                 action.run();
                 render();
             }
@@ -194,8 +184,9 @@ class NimWindow extends JPanel {
     }
 
     private void keyAction(String keyStroke, Runnable action) {
-        getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyStroke), "KEY_" + keyStroke);
-        getActionMap().put("KEY_" + keyStroke, new AbstractAction() {
+        String key = "KEY_" + keyStroke.replace(' ', '_');
+        getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyStroke), key);
+        getActionMap().put(key, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 action.run();
@@ -203,37 +194,45 @@ class NimWindow extends JPanel {
         });
     }
 
+    private void findActiveRow(int direction) {
+        if (nim.isEmpty()) {
+            return;
+        }
+        if (hoverRow == -1) {
+            hoverRow = nim.rows() - 1;
+        }
+        int newRow = Math.max(hoverRow, 0);
+        do {
+            newRow = Math.floorMod(newRow + direction, nim.rows());
+        } while (nim.state()[newRow] == 0 && newRow != hoverRow);
+        hoverRow = newRow;
+        hoverPos = nim.state()[hoverRow];
+    }
 
     private void createElements() {
-        arrowAction("LEFT", () -> hoverPos = Math.max(0, hoverPos - 1));
+        arrowAction("LEFT", () -> {
+            if (nim.isEmpty()) {
+                return;
+            }
+            if (hoverRow == -1) {
+                findActiveRow(1);
+            }
+            hoverPos = Math.max(0, hoverPos - 1);
+        });
         arrowAction("RIGHT", () -> {
+            if (nim.isEmpty()) {
+                return;
+            }
+            if (hoverRow == -1) {
+                findActiveRow(1);
+            }
             if (nim.state()[hoverRow] == 0) {
                 return;
             }
             hoverPos = Math.min(nim.state()[hoverRow], hoverPos + 1);
         });
-        arrowAction("UP", () -> {
-            if (nim.isEmpty()) {
-                return;
-            }
-            int newRow = hoverRow;
-            do {
-                newRow = Math.floorMod(newRow - 1, nim.rows());
-            } while (nim.state()[newRow] == 0 && newRow != hoverRow);
-            hoverRow = newRow;
-            hoverPos = nim.state()[hoverRow];
-        });
-        arrowAction("DOWN", () -> {
-            if (nim.isEmpty()) {
-                return;
-            }
-            int newRow = hoverRow;
-            do {
-                newRow = Math.floorMod(newRow + 1, nim.rows());
-            } while (nim.state()[newRow] == 0 && newRow != hoverRow);
-            hoverRow = newRow;
-            hoverPos = nim.state()[hoverRow];
-        });
+        arrowAction("UP", () -> findActiveRow(-1));
+        arrowAction("DOWN", () -> findActiveRow(1));
         messagePane.setPreferredSize(new Dimension(WIDTH_CANVAS - 150, HEIGHT - HEIGHT_CANVAS));
         messagePane.setEditable(false);
         canvas.setMinimumSize(new Dimension(WIDTH_CANVAS, HEIGHT_CANVAS));
@@ -416,5 +415,14 @@ class NimWindow extends JPanel {
 
     void setComputerMoveEnabled(boolean enabled) {
         computerMoveButton.setEnabled(enabled);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", "[", "]")
+                .add("nim=" + nim)
+                .add("row=" + hoverRow)
+                .add("pos=" + hoverPos)
+                .toString();
     }
 }
