@@ -28,6 +28,7 @@ final class Nim {
                 state[i] = n;
             }
             if (good(state)) {
+                Arrays.sort(state);
                 return create(state);
             }
         }
