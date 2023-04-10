@@ -47,11 +47,12 @@ final class Nim {
     }
 
     List<Nim> moves() {
-        List<Nim> result = new ArrayList<>();
-        for (int j = 0; j < state.length; j++) {
-            int sum = sum(j);
-            if (sum < state[j]) {
-                result.add(set(j, sum));
+        List<Nim> result = new ArrayList<>(state.length);
+        int sum = sum();
+        for (int n = 0; n < state.length; n++) {
+            int m = sum ^ state[n];
+            if (m < state[n]) {
+                result.add(set(n, m));
             }
         }
         return result;
@@ -68,22 +69,14 @@ final class Nim {
         return Arrays.toString(state);
     }
 
-    private int sum(int exclude) {
-        return sum(state, exclude);
+    private int sum() {
+        return sum(state);
     }
 
     private static int sum(int[] state) {
-        return sum(state, -1);
-    }
-
-    private static int sum(int[] state, int exclude) {
         int result = 0;
-        for (int j = 0; j < state.length; j++) {
-            if (j == exclude) {
-                continue;
-            }
-            int i = state[j];
-            result = result ^ i;
+        for (int n : state) {
+            result ^= n;
         }
         return result;
     }
