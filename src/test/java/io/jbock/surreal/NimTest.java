@@ -84,10 +84,4 @@ class NimTest {
         assertTrue(moves.contains(Nim.create(1, 3, 4, 6)));
         assertTrue(moves.contains(Nim.create(1, 3, 7, 5)));
     }
-
-    @Test
-    void testBinary() {
-        int[] bin = Nim.binary(13);
-        assertArrayEquals(new int[]{1, 0, 1, 1}, bin);
-    }
 }
