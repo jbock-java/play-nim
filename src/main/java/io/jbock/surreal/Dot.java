@@ -7,41 +7,24 @@ final class Dot {
     final int row;
     final Ellipse2D.Float shape;
 
-    private boolean hover;
-
     Dot(int n, int row, Ellipse2D.Float shape) {
         this.n = n;
         this.row = row;
         this.shape = shape;
     }
 
-    boolean geq(Dot other) {
-        if (other == null) {
-            return false;
+    boolean geq(int otherRow, int otherPos) {
+        if (otherPos < 0) {
+            return false; 
         }
-        if (!other.hover) {
-            return false;
-        }
-        return row == other.row && n >= other.n;
+        return row == otherRow && n >= otherPos;
     }
 
-    boolean lt(Dot other) {
-        if (other == null) {
-            return false;
-        }
-        if (!other.hover) {
-            return false;
-        }
-        return row == other.row && n < other.n;
+    boolean lt(int otherRow, int otherPos) {
+        return row == otherRow && n < otherPos;
     }
 
-    boolean setHover(boolean hover) {
-        boolean result = this.hover ^ hover;
-        this.hover = hover;
-        return result;
-    }
-
-    boolean hover() {
-        return hover;
+    boolean isAt(int otherRow, int otherPos) {
+        return row == otherRow && n == otherPos;
     }
 }

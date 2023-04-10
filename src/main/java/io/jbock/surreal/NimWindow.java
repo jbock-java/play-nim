@@ -1,5 +1,6 @@
 package io.jbock.surreal;
 
+import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -25,6 +26,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -48,7 +50,6 @@ class NimWindow extends JPanel {
 
     private final List<Dot> shapes = new ArrayList<>();
 
-    private Dot hover;
     private Color hoverColor = COLOR_HOVER;
 
     private final DefaultListModel<Nim> actionsModel = new DefaultListModel<>();
@@ -62,12 +63,26 @@ class NimWindow extends JPanel {
     private final JButton newGameButton = new JButton("New Game");
     private final JTextField messagePane = new JTextField();
 
+    private int hoverRow = -1;
+    private int hoverPos = -1;
+
     private final Canvas canvas = new Canvas() {
         @Override
         public void paint(Graphics g) {
             render();
         }
     };
+    private Runnable onNewGame = () -> {
+    };
+
+    private void clearHover() {
+        hoverRow = -1;
+        hoverPos = -1;
+    }
+
+    private boolean isHover() {
+        return hoverRow >= 0 && hoverPos >= 0;
+    }
 
     private static final int WIDTH_CANVAS = 600;
     private static final int HEIGHT_CANVAS = 280;
@@ -76,24 +91,32 @@ class NimWindow extends JPanel {
     public static final int WIDTH_PANEL = 300;
     public static final int HEIGHT_BUTTON_PANE = 20;
 
+    private boolean setHover(Dot f, boolean hover) {
+        boolean result = f.isAt(hoverRow, hoverPos) ^ hover;
+        if (hover) {
+            hoverRow = f.row;
+            hoverPos = f.n;
+        }
+        return result;
+    }
+
     private boolean onMouseMoved(int x, int y) {
         boolean hoverFound = false;
         boolean anyChange = false;
         for (Dot f : shapes) {
             if (hoverFound) {
-                anyChange |= f.setHover(false);
+                anyChange |= setHover(f, false);
                 continue;
             }
             if (f.shape.contains(x, y)) {
                 hoverFound = true;
-                anyChange |= f.setHover(true);
-                hover = f;
+                anyChange |= setHover(f, true);
             } else {
-                anyChange |= f.setHover(false);
+                anyChange |= setHover(f, false);
             }
         }
         if (!hoverFound) {
-            hover = null;
+            clearHover();
         }
         return anyChange;
     }
@@ -109,10 +132,15 @@ class NimWindow extends JPanel {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            if (hover != null) {
-                boolean contains = hover.shape.contains(e.getX(), e.getY());
-                hoverColor = contains ? COLOR_ACTIVE : COLOR_HOVER;
-                render();
+            if (isHover()) {
+                for (Dot dot : shapes) {
+                    if (dot.isAt(hoverRow, hoverPos)) {
+                        boolean contains = dot.shape.contains(e.getX(), e.getY());
+                        hoverColor = contains ? COLOR_ACTIVE : COLOR_HOVER;
+                        render();
+                        break;
+                    }
+                }
             }
         }
     };
@@ -143,7 +171,69 @@ class NimWindow extends JPanel {
         return view;
     }
 
+    private void arrowAction(String keyStroke, Runnable action) {
+        getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyStroke), "KEY_" + keyStroke);
+        getActionMap().put("KEY_" + keyStroke, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (hoverRow == -1) {
+                    int[] state = nim.state();
+                    for (int i = 0; i < state.length; i++) {
+                        int row = state[i];
+                        if (row >= 1) {
+                            hoverRow = i;
+                            hoverPos = row - 1;
+                            break;
+                        }
+                    }
+                }
+                action.run();
+                render();
+            }
+        });
+    }
+
+    private void keyAction(String keyStroke, Runnable action) {
+        getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyStroke), "KEY_" + keyStroke);
+        getActionMap().put("KEY_" + keyStroke, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                action.run();
+            }
+        });
+    }
+
+
     private void createElements() {
+        arrowAction("LEFT", () -> hoverPos = Math.max(0, hoverPos - 1));
+        arrowAction("RIGHT", () -> {
+            if (nim.state()[hoverRow] == 0) {
+                return;
+            }
+            hoverPos = Math.min(nim.state()[hoverRow], hoverPos + 1);
+        });
+        arrowAction("UP", () -> {
+            if (nim.isEmpty()) {
+                return;
+            }
+            int newRow = hoverRow;
+            do {
+                newRow = Math.floorMod(newRow - 1, nim.rows());
+            } while (nim.state()[newRow] == 0 && newRow != hoverRow);
+            hoverRow = newRow;
+            hoverPos = nim.state()[hoverRow];
+        });
+        arrowAction("DOWN", () -> {
+            if (nim.isEmpty()) {
+                return;
+            }
+            int newRow = hoverRow;
+            do {
+                newRow = Math.floorMod(newRow + 1, nim.rows());
+            } while (nim.state()[newRow] == 0 && newRow != hoverRow);
+            hoverRow = newRow;
+            hoverPos = nim.state()[hoverRow];
+        });
         messagePane.setPreferredSize(new Dimension(WIDTH_CANVAS - 150, HEIGHT - HEIGHT_CANVAS));
         messagePane.setEditable(false);
         canvas.setMinimumSize(new Dimension(WIDTH_CANVAS, HEIGHT_CANVAS));
@@ -205,7 +295,7 @@ class NimWindow extends JPanel {
                 shapes.add(new Dot(n, row, f));
             }
         }
-        hover = null;
+        clearHover();
         BufferStrategy bufferStrategy = canvas.getBufferStrategy();
         Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
         g.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -230,9 +320,9 @@ class NimWindow extends JPanel {
             return;
         }
         for (Dot f : shapes) {
-            g.setPaint(f.geq(hover) ? hoverColor : CYAN);
+            g.setPaint(f.geq(hoverRow, hoverPos) ? hoverColor : CYAN);
             g.fill(f.shape);
-            if (f.lt(hover)) {
+            if (f.lt(hoverRow, hoverPos)) {
                 g.setPaint(Color.WHITE);
                 int width = g.getFontMetrics().stringWidth(Integer.toString(f.n + 1));
                 g.drawString(Integer.toString(f.n + 1), f.shape.x + 10.5f - (width / 2f), f.shape.y + 16);
@@ -243,12 +333,29 @@ class NimWindow extends JPanel {
     }
 
     void setOnMove(Consumer<Nim> onMove) {
+        keyAction("pressed SPACE", () -> {
+            hoverColor = COLOR_ACTIVE;
+            render();
+        });
+        keyAction("released SPACE", () -> {
+            if (nim.isEmpty()) {
+                onNewGame.run();
+                return;
+            }
+            for (Dot dot : shapes) {
+                if (dot.isAt(hoverRow, hoverPos)) {
+                    onMove.accept(nim.set(dot.row, dot.n));
+                    return;
+                }
+            }
+        });
+        keyAction("typed n", () -> onNewGame.run());
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
                 for (Dot dot : shapes) {
                     if (dot.shape.contains(e.getX(), e.getY())) {
-                        if (hover == null || !hover.hover() || hover != dot) {
+                        if (!isHover() || !dot.isAt(hoverRow, hoverPos)) {
                             break;
                         }
                         onMove.accept(nim.set(dot.row, dot.n));
@@ -270,6 +377,7 @@ class NimWindow extends JPanel {
     }
 
     void setOnNewGame(Runnable onNewGame) {
+        this.onNewGame = onNewGame;
         newGameButton.addActionListener(e -> onNewGame.run());
     }
 
