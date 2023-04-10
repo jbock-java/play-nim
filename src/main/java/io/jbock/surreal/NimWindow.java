@@ -331,12 +331,13 @@ class NimWindow extends JPanel {
         g.dispose();
     }
 
-    void setOnMove(Consumer<Nim> onMove) {
-        keyAction("pressed SPACE", () -> {
-            hoverColor = COLOR_ACTIVE;
-            render();
-        });
-        keyAction("released SPACE", () -> {
+    private void onSpacePressed() {
+        hoverColor = COLOR_ACTIVE;
+        render();
+    }
+
+    private Runnable onSpaceReleased(Consumer<Nim> onMove) {
+        return () -> {
             if (nim.isEmpty()) {
                 onNewGame.run();
                 return;
@@ -347,7 +348,14 @@ class NimWindow extends JPanel {
                     return;
                 }
             }
-        });
+        };
+    }
+
+    void setOnMove(Consumer<Nim> onMove) {
+        keyAction("pressed SPACE", this::onSpacePressed);
+        keyAction("released SPACE", onSpaceReleased(onMove));
+        keyAction("pressed ENTER", this::onSpacePressed);
+        keyAction("released ENTER", onSpaceReleased(onMove));
         keyAction("typed n", () -> onNewGame.run());
         canvas.addMouseListener(new MouseAdapter() {
             @Override
