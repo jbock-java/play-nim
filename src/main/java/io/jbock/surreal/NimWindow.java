@@ -19,6 +19,7 @@ import javax.swing.SpinnerNumberModel;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -147,7 +148,7 @@ class NimWindow extends JPanel {
     };
     private final HistoryListener listSelectionListener = new HistoryListener(actions);
     private final JSpinner numRows = new JSpinner();
-    private final JCheckBox explore = new JCheckBox("Explore");
+    private final JCheckBox exploreCheckbox = new JCheckBox("Explore");
 
     private NimWindow() {
     }
@@ -255,7 +256,7 @@ class NimWindow extends JPanel {
         rightPanel.add(canvas, BorderLayout.CENTER);
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
-        panel.add(explore);
+        panel.add(exploreCheckbox);
         panel.add(messagePane);
         panel.add(new JLabel("Rows"));
         numRows.setModel(new SpinnerNumberModel(3, 3, 7, 1));
@@ -273,6 +274,17 @@ class NimWindow extends JPanel {
         buttonPanel.setBackground(Color.DARK_GRAY);
         actions.setBackground(Color.DARK_GRAY);
         leftPanel.setBackground(Color.DARK_GRAY);
+
+        actions.setFocusable(false);
+        newGameButton.setFocusable(false);
+        computerMoveButton.setFocusable(false);
+        exploreCheckbox.setFocusable(false);
+        messagePane.setFocusable(false);
+        scrollPanel.setFocusable(false);
+        numRows.setFocusable(false);
+        for (Component component : numRows.getEditor().getComponents()) {
+            component.setFocusable(false);
+        }
 
         // Listeners
         canvas.addMouseMotionListener(mouseMoveListener);
@@ -418,7 +430,7 @@ class NimWindow extends JPanel {
     }
 
     void setOnExploreChanged(Consumer<Boolean> onExploreChanged) {
-        explore.addItemListener(e -> onExploreChanged.accept(e.getStateChange() == ItemEvent.SELECTED));
+        exploreCheckbox.addItemListener(e -> onExploreChanged.accept(e.getStateChange() == ItemEvent.SELECTED));
     }
 
     void setComputerMoveEnabled(boolean enabled) {
