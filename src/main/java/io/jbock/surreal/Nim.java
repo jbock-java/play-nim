@@ -4,7 +4,6 @@ import io.parmigiano.Permutation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -34,14 +33,17 @@ final class Nim {
         }
     }
 
+    // Is this a winnable and interesting starting position?
     private static boolean good(int[] state) {
         if (sum(state) == 0) {
-            return false;
+            return false; // not winnable
         }
-        HashSet<Integer> test = new HashSet<>();
-        for (int i : state) {
-            if (!test.add(i)) {
-                return false;
+        // duplicates are not interesting
+        for (int i = 1; i < state.length; ++i) {
+            for (int j = 0; j < i; ++j) {
+                if (state[i] == state[j]) {
+                    return false;
+                }
             }
         }
         return true;

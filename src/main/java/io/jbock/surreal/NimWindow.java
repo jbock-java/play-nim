@@ -173,7 +173,7 @@ class NimWindow extends JPanel {
         return view;
     }
 
-    private void arrowAction(String keyStroke, Runnable action) {
+    private void cursorAction(String keyStroke, Runnable action) {
         getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyStroke), "KEY_" + keyStroke);
         getActionMap().put("KEY_" + keyStroke, new AbstractAction() {
             @Override
@@ -211,7 +211,7 @@ class NimWindow extends JPanel {
     }
 
     private void createElements() {
-        arrowAction("LEFT", () -> {
+        cursorAction("LEFT", () -> {
             if (nim.isEmpty()) {
                 return;
             }
@@ -220,7 +220,7 @@ class NimWindow extends JPanel {
             }
             hoverPos = Math.max(0, hoverPos - 1);
         });
-        arrowAction("RIGHT", () -> {
+        cursorAction("RIGHT", () -> {
             if (nim.isEmpty()) {
                 return;
             }
@@ -232,8 +232,8 @@ class NimWindow extends JPanel {
             }
             hoverPos = Math.min(nim.state()[hoverRow], hoverPos + 1);
         });
-        arrowAction("UP", () -> findActiveRow(-1));
-        arrowAction("DOWN", () -> findActiveRow(1));
+        cursorAction("UP", () -> findActiveRow(-1));
+        cursorAction("DOWN", () -> findActiveRow(1));
         messagePane.setPreferredSize(new Dimension(WIDTH_CANVAS - 150, HEIGHT - HEIGHT_CANVAS));
         messagePane.setEditable(false);
         canvas.setMinimumSize(new Dimension(WIDTH_CANVAS, HEIGHT_CANVAS));
@@ -369,6 +369,7 @@ class NimWindow extends JPanel {
         keyAction("pressed ENTER", this::onSpacePressed);
         keyAction("released ENTER", onSpaceReleased(onMove));
         keyAction("typed n", () -> onNewGame.run());
+        keyAction("typed r", () -> onNewGame.run());
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
