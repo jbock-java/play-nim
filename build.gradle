@@ -10,12 +10,6 @@ application {
     mainClass = 'io.jbock.surreal.Main'
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 compileJava {
     options.encoding = 'UTF-8'
     sourceCompatibility = '17'
