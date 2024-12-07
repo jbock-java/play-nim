@@ -19,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,10 @@ class NimWindow extends JPanel {
   private static final Color COLOR_ACTIVE = Color.GRAY;
   private Nim nim;
 
-  private final List<Dot> shapes = new ArrayList<>();
+  record Row(Rectangle2D row, List<Dot> dots) {
+  }
+
+  private final List<Row> shapes = new ArrayList<>();
 
   private Color hoverColor = COLOR_HOVER;
 
@@ -83,7 +87,7 @@ class NimWindow extends JPanel {
   }
 
   private boolean isHover() {
-    return hoverRow >= 0 && hoverPos >= 0;
+    return hoverRow >= 0 || hoverPos >= 0;
   }
 
   private static final int WIDTH_CANVAS = 600;
@@ -102,47 +106,51 @@ class NimWindow extends JPanel {
     return result;
   }
 
-  private boolean onMouseMoved(int x, int y) {
+  private boolean updateHover(int x, int y) {
     boolean hoverFound = false;
-    boolean anyChange = false;
-    for (Dot f : shapes) {
-      if (hoverFound) {
-        anyChange |= setHover(f, false);
+    boolean hoverChanged = false;
+    for (int i = 0; i < shapes.size(); i++) {
+      Row r = shapes.get(i);
+      if (y > r.row.getMaxY() || y < r.row.getMinY()) {
         continue;
       }
-      if (f.shape.contains(x, y)) {
+      if (x >= 4 && x <= 16) {
         hoverFound = true;
-        anyChange |= setHover(f, true);
-      } else {
-        anyChange |= setHover(f, false);
+        if (hoverRow == i && hoverPos == -1) {
+          hoverChanged = false;
+          break;
+        }
+        hoverRow = i;
+        hoverPos = -1;
+        hoverChanged = true;
+        break;
+      }
+      for (Dot f : r.dots) {
+        if (hoverFound) {
+          hoverChanged |= setHover(f, false);
+          continue;
+        }
+        if (f.shape.contains(x, y)) {
+          hoverFound = true;
+          hoverChanged |= setHover(f, true);
+        } else {
+          hoverChanged |= setHover(f, false);
+        }
       }
     }
     if (!hoverFound) {
+      hoverChanged = hoverRow != -1 || hoverPos != -1;  
       clearHover();
     }
-    return anyChange;
+    return hoverChanged;
   }
 
   private final MouseMotionListener mouseMoveListener = new MouseAdapter() {
 
     @Override
     public void mouseMoved(MouseEvent e) {
-      if (onMouseMoved(e.getX(), e.getY())) {
+      if (updateHover(e.getX(), e.getY())) {
         render();
-      }
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-      if (isHover()) {
-        for (Dot dot : shapes) {
-          if (dot.isAt(hoverRow, hoverPos)) {
-            boolean contains = dot.shape.contains(e.getX(), e.getY());
-            hoverColor = contains ? COLOR_ACTIVE : COLOR_HOVER;
-            render();
-            break;
-          }
-        }
       }
     }
   };
@@ -299,18 +307,23 @@ class NimWindow extends JPanel {
     int[] state = nim.state();
     for (int row = 0; row < state.length; row++) {
       int i = state[row];
+      int y = 20 + 26 * row;
+      Rectangle2D.Float rect = new Rectangle2D.Float(0, y, 20, 20);
+      List<Dot> dotsInRow = new ArrayList<>(i);
       for (int n = 0; n < i; n++) {
         int x = 20 + 26 * n;
-        int y = 20 + 26 * row;
         Ellipse2D.Float f = new Ellipse2D.Float(x, y, 20, 20);
-        shapes.add(new Dot(n, row, f));
+        dotsInRow.add(new Dot(n, row, f));
       }
+      shapes.add(new Row(rect, dotsInRow));
     }
     clearHover();
     BufferStrategy bufferStrategy = canvas.getBufferStrategy();
     Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
     g.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
     render(g);
+    Toolkit.getDefaultToolkit().sync();
+    g.dispose();
   }
 
   void addToHistory(Nim nim) {
@@ -324,23 +337,22 @@ class NimWindow extends JPanel {
     BufferStrategy bufferStrategy = canvas.getBufferStrategy();
     Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
     render(g);
+    Toolkit.getDefaultToolkit().sync();
+    g.dispose();
   }
 
   private void render(Graphics2D g) {
-    if (nim == null) {
-      return;
-    }
-    for (Dot f : shapes) {
-      g.setPaint(f.ge(hoverRow, hoverPos) ? hoverColor : CYAN);
-      g.fill(f.shape);
-      if (f.lt(hoverRow, hoverPos)) {
-        g.setPaint(Color.WHITE);
-        int width = g.getFontMetrics().stringWidth(Integer.toString(f.n + 1));
-        g.drawString(Integer.toString(f.n + 1), f.shape.x + 10.5f - (width / 2f), f.shape.y + 16);
+    for (Row r : shapes) {
+      for (Dot f : r.dots) {
+        g.setPaint(f.gt(hoverRow, hoverPos) ? hoverColor : CYAN);
+        g.fill(f.shape);
+        if (f.le(hoverRow, hoverPos)) {
+          g.setPaint(Color.WHITE);
+          int width = g.getFontMetrics().stringWidth(Integer.toString(f.n + 1));
+          g.drawString(Integer.toString(f.n + 1), f.shape.x + 10.5f - (width / 2f), f.shape.y + 16);
+        }
       }
     }
-    Toolkit.getDefaultToolkit().sync();
-    g.dispose();
   }
 
   private void onSpacePressed() {
@@ -354,10 +366,12 @@ class NimWindow extends JPanel {
         onNewGame.run();
         return;
       }
-      for (Dot dot : shapes) {
-        if (dot.isAt(hoverRow, hoverPos)) {
-          onMove.accept(nim.set(dot.row, dot.n));
-          return;
+      for (Row r : shapes) {
+        for (Dot dot : r.dots) {
+          if (dot.isAt(hoverRow, hoverPos)) {
+            onMove.accept(nim.set(dot.row, dot.n));
+            return;
+          }
         }
       }
     };
@@ -373,23 +387,38 @@ class NimWindow extends JPanel {
     canvas.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseReleased(MouseEvent e) {
-        for (Dot dot : shapes) {
-          if (dot.shape.contains(e.getX(), e.getY())) {
-            if (!isHover() || !dot.isAt(hoverRow, hoverPos)) {
-              break;
+        for (Row r : shapes) {
+          if (e.getY() < r.row().getMinY() || e.getY() > r.row.getMaxY()) {
+            continue;
+          }
+          for (Dot dot : r.dots) {
+            if (e.getX() >= 4 && e.getX() <= 16) {
+              Nim newState = nim.set(dot.row, dot.n);
+              if (newState != nim) {
+                onMove.accept(newState);
+              }
+              return;
             }
-            onMove.accept(nim.set(dot.row, dot.n));
-            return;
+            if (dot.shape.contains(e.getX(), e.getY())) {
+              if (!isHover() || !dot.isAt(hoverRow, hoverPos)) {
+                break;
+              }
+              Nim newState = nim.set(dot.row, dot.n + 1);
+              if (newState != nim) {
+                onMove.accept(newState);
+              }
+              return;
+            }
           }
         }
-        onMouseMoved(e.getX(), e.getY());
+        updateHover(e.getX(), e.getY());
         hoverColor = COLOR_HOVER;
         render();
       }
 
       @Override
       public void mousePressed(MouseEvent e) {
-        onMouseMoved(e.getX(), e.getY());
+        updateHover(e.getX(), e.getY());
         hoverColor = COLOR_ACTIVE;
         render();
       }

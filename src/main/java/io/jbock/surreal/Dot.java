@@ -13,15 +13,12 @@ final class Dot {
     this.shape = shape;
   }
 
-  boolean ge(int otherRow, int otherPos) {
-    if (otherPos < 0) {
-      return false;
-    }
-    return row == otherRow && n >= otherPos;
+  boolean gt(int otherRow, int otherPos) {
+    return row == otherRow && n > otherPos;
   }
 
-  boolean lt(int otherRow, int otherPos) {
-    return row == otherRow && n < otherPos;
+  boolean le(int otherRow, int otherPos) {
+    return row == otherRow && n <= otherPos;
   }
 
   boolean isAt(int otherRow, int otherPos) {
