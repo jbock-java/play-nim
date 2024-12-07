@@ -62,6 +62,9 @@ final class Nim {
   }
 
   Nim set(int row, int n) {
+    if (state[row] <= n) {
+      return this;
+    }
     int[] newState = Arrays.copyOf(state, state.length);
     newState[row] = n;
     return new Nim(newState);

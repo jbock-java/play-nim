@@ -19,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,9 @@ class NimWindow extends JPanel {
   private static final Color COLOR_HOVER = Color.LIGHT_GRAY;
   private static final Color COLOR_ACTIVE = Color.GRAY;
   private Nim nim;
+
+  record Row(Rectangle2D row, List<Dot> dots) {
+  }
 
   private final List<Dot> shapes = new ArrayList<>();
 
@@ -331,9 +335,9 @@ class NimWindow extends JPanel {
       return;
     }
     for (Dot f : shapes) {
-      g.setPaint(f.ge(hoverRow, hoverPos) ? hoverColor : CYAN);
+      g.setPaint(f.gt(hoverRow, hoverPos) ? hoverColor : CYAN);
       g.fill(f.shape);
-      if (f.lt(hoverRow, hoverPos)) {
+      if (f.le(hoverRow, hoverPos)) {
         g.setPaint(Color.WHITE);
         int width = g.getFontMetrics().stringWidth(Integer.toString(f.n + 1));
         g.drawString(Integer.toString(f.n + 1), f.shape.x + 10.5f - (width / 2f), f.shape.y + 16);
@@ -378,7 +382,10 @@ class NimWindow extends JPanel {
             if (!isHover() || !dot.isAt(hoverRow, hoverPos)) {
               break;
             }
-            onMove.accept(nim.set(dot.row, dot.n));
+            Nim newState = nim.set(dot.row, dot.n + 1);
+            if (newState != nim) {
+              onMove.accept(newState);
+            }
             return;
           }
         }
