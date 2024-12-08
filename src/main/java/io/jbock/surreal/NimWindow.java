@@ -110,9 +110,7 @@ class NimWindow extends JPanel {
     boolean hoverFound = false;
     boolean anyChange = false;
     for (Row r : shapes) {
-      double maxY = r.row.getMaxY();
-      double minY = r.row.getMinY();
-      if (y > maxY || y < minY) {
+      if (y > r.row.getMaxY() || y < r.row.getMinY()) {
         continue;
       }
       for (Dot f : r.dots) {
@@ -398,6 +396,9 @@ class NimWindow extends JPanel {
       @Override
       public void mouseReleased(MouseEvent e) {
         for (Row r : shapes) {
+          if (e.getY() < r.row().getMinY() || e.getY() > r.row.getMaxY()) {
+            continue;
+          }
           for (Dot dot : r.dots) {
             if (dot.shape.contains(e.getX(), e.getY())) {
               if (!isHover() || !dot.isAt(hoverRow, hoverPos)) {
